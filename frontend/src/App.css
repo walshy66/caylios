@@ -1,0 +1,165 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #1f2933;
+  background: #f8fafc;
+  line-height: 1.5;
+}
+
+button,
+select,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.app-shell {
+  font-family: Arial, sans-serif;
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.app-header {
+  margin-bottom: 24px;
+}
+
+.app-header h1 {
+  margin-bottom: 4px;
+}
+
+.app-header p {
+  margin: 0;
+  color: #52606d;
+}
+
+.session-dashboard {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(360px, 2fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.session-sidebar {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.panel {
+  border: 1px solid #d9e2ec;
+  padding: 16px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  margin: 4px 0 12px;
+}
+
+.session-list-filters,
+.session-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.session-card-list {
+  display: grid;
+  gap: 8px;
+}
+
+.session-card {
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.session-card[aria-pressed='true'] {
+  border: 2px solid #1f2933;
+}
+
+.session-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.session-harness-tag {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.session-card-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.session-detail-panel {
+  min-width: 0;
+}
+
+.session-error {
+  color: #b00020;
+}
+
+.session-log {
+  min-height: 180px;
+  max-height: 55vh;
+  padding: 12px;
+  background: #f6f8fa;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  .session-dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell {
+    padding: 12px;
+  }
+
+  .panel {
+    padding: 12px;
+  }
+
+  .session-card-meta {
+    grid-template-columns: 1fr;
+  }
+}

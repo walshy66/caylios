@@ -16,13 +16,36 @@ def init_db() -> None:
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
                 repo_path TEXT,
-                harness TEXT NOT NULL,
+                harness TEXT NOT NULL CHECK (harness IN ('test', 'codex', 'pi')),
                 prompt TEXT,
-                status TEXT NOT NULL,
+                model TEXT,
+                status TEXT NOT NULL CHECK (status IN ('created', 'running', 'stopped', 'completed', 'errored')),
                 branch_name TEXT,
                 log_path TEXT,
+                output_tail TEXT,
+                error_message TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
+            )
+            """
+        )
+        existing_columns = {column[1] for column in conn.execute("PRAGMA table_info(sessions)").fetchall()}
+        if "model" not in existing_columns:
+            conn.execute("ALTER TABLE sessions ADD COLUMN model TEXT")
+        if "output_tail" not in existing_columns:
+            conn.execute("ALTER TABLE sessions ADD COLUMN output_tail TEXT")
+        if "error_message" not in existing_columns:
+            conn.execute("ALTER TABLE sessions ADD COLUMN error_message TEXT")
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS activity_events (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                tag TEXT NOT NULL CHECK (tag IN ('comment', 'note', 'attachment', 'handoff', 'status', 'prompt', 'branch')),
+                body TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (session_id) REFERENCES sessions(id)
             )
             """
         )

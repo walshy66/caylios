@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { getSessionLogs, Session, startSession, stopSession } from '../api';
+import { useCallback, useEffect, useState } from 'react';
+import { getSession, getSessionLogs, restartSession, resumeSession, Session, startSession, stopSession } from '../api';
+import { LOG_TAIL_INTERVAL_MS, shouldTailLogs } from '../sessionLogTailModel';
+import { getAvailableSessionActions } from '../sessionListModel';
 
 type Props = {
   session: Session | null;
@@ -10,23 +12,45 @@ export default function SessionDetail({ session, onChanged }: Props) {
   const [logs, setLogs] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const refreshLogs = useCallback(async (showLoading = true) => {
+    if (!session) return;
+    if (showLoading) {
+      setIsLoading(true);
+    }
+    try {
+      setLogs(await getSessionLogs(session.id));
+    } finally {
+      if (showLoading) {
+        setIsLoading(false);
+      }
+    }
+  }, [session]);
+
+  useEffect(() => {
+    setLogs(session?.output_tail || '');
+    if (!shouldTailLogs(session)) return;
+
+    async function refreshRunningSession() {
+      if (!session) return;
+      await refreshLogs(false);
+      onChanged(await getSession(session.id));
+    }
+
+    void refreshRunningSession();
+    const intervalId = window.setInterval(() => {
+      void refreshRunningSession();
+    }, LOG_TAIL_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [refreshLogs, session]);
+
   if (!session) {
     return (
-      <section style={{ border: '1px solid #ddd', padding: 16, borderRadius: 8 }}>
+      <section className="panel session-detail-panel">
         <h2>Session detail</h2>
         <p>Select a session to view details.</p>
       </section>
     );
-  }
-
-  async function refreshLogs() {
-    if (!session) return;
-    setIsLoading(true);
-    try {
-      setLogs(await getSessionLogs(session.id));
-    } finally {
-      setIsLoading(false);
-    }
   }
 
   async function handleStart() {
@@ -43,18 +67,37 @@ export default function SessionDetail({ session, onChanged }: Props) {
     await refreshLogs();
   }
 
+  async function handleResume() {
+    if (!session) return;
+    const updated = await resumeSession(session.id);
+    onChanged(updated);
+    await refreshLogs();
+  }
+
+  async function handleRestart() {
+    if (!session) return;
+    const updated = await restartSession(session.id);
+    onChanged(updated);
+    await refreshLogs();
+  }
+
+  const availableActions = getAvailableSessionActions(session.status);
+
   return (
-    <section style={{ border: '1px solid #ddd', padding: 16, borderRadius: 8 }}>
+    <section className="panel session-detail-panel">
       <h2>{session.title}</h2>
       <p>Status: {session.status}</p>
       <p>Harness: {session.harness}</p>
       <p>Repo: {session.repo_path || 'Not set'}</p>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <button onClick={handleStart}>Start</button>
-        <button onClick={handleStop}>Stop</button>
-        <button onClick={refreshLogs}>{isLoading ? 'Refreshing...' : 'Refresh logs'}</button>
+      {session.error_message ? <p className="session-error">Error: {session.error_message}</p> : null}
+      <div className="session-actions">
+        {availableActions.includes('start') ? <button onClick={handleStart}>Start</button> : null}
+        {availableActions.includes('stop') ? <button onClick={handleStop}>Stop</button> : null}
+        {availableActions.includes('resume') ? <button onClick={handleResume}>Resume</button> : null}
+        {availableActions.includes('restart') ? <button onClick={handleRestart}>Restart</button> : null}
+        <button onClick={() => refreshLogs()}>{isLoading ? 'Refreshing...' : 'Refresh logs'}</button>
       </div>
-      <pre style={{ minHeight: 180, padding: 12, background: '#f6f6f6', overflow: 'auto' }}>{logs || 'No logs loaded.'}</pre>
+      <pre className="session-log">{logs || 'No logs loaded.'}</pre>
     </section>
   );
 }
