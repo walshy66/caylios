@@ -6,9 +6,12 @@ export type Session = {
   repo_path: string | null;
   harness: 'test' | 'codex' | 'pi';
   prompt: string | null;
+  model: string | null;
   status: 'created' | 'running' | 'stopped' | 'completed' | 'errored';
   branch_name: string | null;
   log_path: string | null;
+  output_tail: string | null;
+  error_message: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -18,6 +21,7 @@ export type SessionCreate = {
   repo_path?: string;
   harness: 'test' | 'codex' | 'pi';
   prompt?: string;
+  model?: string;
 };
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -37,6 +41,10 @@ export function listSessions(): Promise<Session[]> {
   return request<Session[]>('/sessions');
 }
 
+export function getSession(id: string): Promise<Session> {
+  return request<Session>(`/sessions/${id}`);
+}
+
 export function createSession(payload: SessionCreate): Promise<Session> {
   return request<Session>('/sessions', {
     method: 'POST',
@@ -50,6 +58,14 @@ export function startSession(id: string): Promise<Session> {
 
 export function stopSession(id: string): Promise<Session> {
   return request<Session>(`/sessions/${id}/stop`, { method: 'POST' });
+}
+
+export function resumeSession(id: string): Promise<Session> {
+  return request<Session>(`/sessions/${id}/resume`, { method: 'POST' });
+}
+
+export function restartSession(id: string): Promise<Session> {
+  return request<Session>(`/sessions/${id}/restart`, { method: 'POST' });
 }
 
 export async function getSessionLogs(id: string): Promise<string> {

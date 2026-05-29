@@ -1,15 +1,20 @@
 {
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test": "node --experimental-strip-types src/sessionCreateModel.test.mjs && node --experimental-strip-types src/sessionListModel.test.mjs && node --experimental-strip-types src/sessionLogTailModel.test.mjs && node --experimental-strip-types src/sessionSelectionModel.test.mjs && node --experimental-strip-types src/mobileStackedLayout.test.mjs && node --experimental-strip-types src/desktopSplitLayout.test.mjs && node --experimental-strip-types src/responsiveAccessibilityPolish.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3"
+  }
 }

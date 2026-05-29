@@ -35,6 +35,8 @@ Excluded for now:
 
 ## Planned local run flow
 
+Run the backend and frontend in two separate terminals. The frontend UI needs the backend running for sessions, history, actions, and logs.
+
 Backend:
 
 ```bash
@@ -45,11 +47,47 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+If `uvicorn` is not on your PATH, use:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+Backend health check:
+
+```text
+http://127.0.0.1:8000/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
 Frontend:
 
 ```bash
 cd frontend
 npm install
+npm run dev
+```
+
+Open the Vite URL printed by the frontend, usually:
+
+```text
+http://localhost:5173
+```
+
+On Windows PowerShell from this repo path, the quick-start commands are:
+
+```powershell
+cd C:\Users\camer\Documents\simplets\backend
+uvicorn app.main:app --reload
+```
+
+```powershell
+cd C:\Users\camer\Documents\simplets\frontend
 npm run dev
 ```
 
