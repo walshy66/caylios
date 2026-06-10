@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
+  ApprovalResult,
   approveReviewRun,
   getReviewRun,
   listReviewQueue,
+  retryDestinationPush,
   ReviewQueueItem,
   ReviewRunDetail,
   updateReviewFields,
@@ -10,8 +12,11 @@ import {
 import {
   canApproveReviewRun,
   canSaveExtractedFields,
-  formatApprovalCompletion,
+  flagReason,
+  flaggedFieldNames,
+  formatApprovalOutcome,
   formatSourcePreview,
+  hasFailedPushes,
   parseEditableFields,
 } from '../reviewQueueModel';
 
@@ -25,6 +30,7 @@ export default function ReviewQueuePanel() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [approvalCompletion, setApprovalCompletion] = useState<string | null>(null);
+  const [lastApproval, setLastApproval] = useState<ApprovalResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function refreshQueue() {
@@ -72,6 +78,14 @@ export default function ReviewQueuePanel() {
     }
   }
 
+  function handleApprovalResult(result: ApprovalResult) {
+    setLastApproval(result);
+    setApprovalCompletion(formatApprovalOutcome(result));
+    if (result.all_succeeded) {
+      setSelected(null);
+    }
+  }
+
   async function approveSelected() {
     if (!selected || !canApproveReviewRun({ hasOpenedExtractedDataScreen, fieldsAreValid: canSaveExtractedFields(fieldsDraft) })) {
       return;
@@ -79,9 +93,7 @@ export default function ReviewQueuePanel() {
     setIsSaving(true);
     setError(null);
     try {
-      const approvedRun = await approveReviewRun(selected.id, CURRENT_REVIEWER);
-      setApprovalCompletion(formatApprovalCompletion(approvedRun));
-      setSelected(null);
+      handleApprovalResult(await approveReviewRun(selected.id, CURRENT_REVIEWER));
       await refreshQueue();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Workflow run failed to approve');
@@ -90,7 +102,26 @@ export default function ReviewQueuePanel() {
     }
   }
 
+  async function retryFailedPushes() {
+    const runId = lastApproval?.workflow_run.id ?? selected?.id;
+    if (!runId) {
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    try {
+      handleApprovalResult(await retryDestinationPush(runId, CURRENT_REVIEWER));
+      await refreshQueue();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Retry failed');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   const fieldsAreValid = canSaveExtractedFields(fieldsDraft);
+  const currentFlagged = selected ? flaggedFieldNames(selected.extracted_fields) : [];
+  const showRetry = lastApproval !== null && !lastApproval.all_succeeded;
 
   return (
     <section className="panel review-queue-panel" aria-labelledby="review-queue-title">
@@ -99,7 +130,14 @@ export default function ReviewQueuePanel() {
         Refresh queue
       </button>
       {error ? <p className="session-error">{error}</p> : null}
-      {approvalCompletion ? <p className="session-status">{approvalCompletion}</p> : null}
+      {approvalCompletion ? (
+        <p className={showRetry ? 'session-error' : 'session-status'}>{approvalCompletion}</p>
+      ) : null}
+      {showRetry ? (
+        <button type="button" onClick={retryFailedPushes} disabled={isSaving}>
+          Retry failed destinations
+        </button>
+      ) : null}
       <div className="review-queue-layout">
         <div>
           <h3>Pending workflow runs</h3>
@@ -129,6 +167,32 @@ export default function ReviewQueuePanel() {
                 {new Date(selected.document.retention_expires_at).toLocaleString()}.
               </p>
               <pre className="source-preview">{formatSourcePreview(selected.source_preview)}</pre>
+              {currentFlagged.length > 0 ? (
+                <div className="flagged-fields" role="alert">
+                  <strong>Fields needing attention:</strong>
+                  <ul>
+                    {currentFlagged.map((name) => (
+                      <li key={name}>
+                        {name} — {flagReason(selected.extracted_fields, name) ?? 'flagged by extraction'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {hasFailedPushes(selected.destination_pushes ?? []) ? (
+                <div className="flagged-fields" role="alert">
+                  <strong>Previous destination failures:</strong>
+                  <ul>
+                    {selected.destination_pushes
+                      .filter((push) => push.status === 'failed')
+                      .map((push) => (
+                        <li key={push.id}>
+                          {push.provider}: {push.error_message ?? 'push failed'}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ) : null}
               <label>
                 Editable extracted fields
                 <textarea

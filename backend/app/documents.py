@@ -24,6 +24,8 @@ from app.schemas import (
     WorkflowRun,
 )
 from app.auth import WorkspaceActor, require_any_staff, require_reviewer
+from app.destinations import DestinationError, audit_destinations, list_pushes, push_to_destinations
+from app.schemas import ApprovalResult, DestinationPush
 from app.tenancy import resolve_workspace
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -111,8 +113,92 @@ def _delete_source_document(document: DocumentMetadata) -> bool:
     return not source_path.exists()
 
 
-def _mock_destination_record_id(workflow_run_id: str) -> str:
-    return f"mock-destination-{workflow_run_id}"
+def _finalize_successful_approval(
+    conn: sqlite3.Connection,
+    review_item: ReviewQueueItem,
+    reviewer: str,
+    pushes: list[dict],
+) -> None:
+    """All destinations succeeded: write the minimal audit record and purge
+    the source file and extracted field data (constitution II)."""
+    timestamp = now_iso()
+    source_document_deleted = _delete_source_document(review_item.document)
+    succeeded_ids = [push["destination_record_id"] for push in pushes if push["status"] == "succeeded"]
+    audit_summary = {
+        "approved_by": reviewer,
+        "approved_at": timestamp,
+        "destinations": audit_destinations(pushes),
+        "source_document_deleted": source_document_deleted,
+    }
+    conn.execute(
+        "UPDATE documents SET deletion_status = ? WHERE id = ?",
+        (DocumentDeletionStatus.DELETED.value, review_item.document.id),
+    )
+    conn.execute(
+        """
+        UPDATE workflow_runs
+        SET status = ?, review_status = ?, extracted_fields = NULL, last_reviewed_by = ?, last_reviewed_at = ?,
+            approved_by = ?, approved_at = ?, destination_record_id = ?, audit_summary = ?, updated_at = ?
+        WHERE id = ?
+        """,
+        (
+            WorkflowRunStatus.COMPLETED.value,
+            ReviewStatus.APPROVED.value,
+            reviewer,
+            timestamp,
+            reviewer,
+            timestamp,
+            succeeded_ids[0] if succeeded_ids else None,
+            json.dumps(audit_summary),
+            timestamp,
+            review_item.id,
+        ),
+    )
+    conn.commit()
+
+
+def _record_failed_push_attempt(conn: sqlite3.Connection, review_item: ReviewQueueItem, reviewer: str) -> None:
+    """Some destination failed: retain all data, surface the error state."""
+    timestamp = now_iso()
+    conn.execute(
+        """
+        UPDATE workflow_runs
+        SET status = ?, last_reviewed_by = ?, last_reviewed_at = ?, updated_at = ?
+        WHERE id = ?
+        """,
+        (WorkflowRunStatus.ERRORED.value, reviewer, timestamp, timestamp, review_item.id),
+    )
+    conn.commit()
+
+
+def _execute_approval_push(
+    conn: sqlite3.Connection,
+    review_item: ReviewQueueItem,
+    reviewer: str,
+    workspace_id: str,
+) -> ApprovalResult:
+    if review_item.review_status == ReviewStatus.APPROVED:
+        raise HTTPException(status_code=409, detail="workflow run is already approved and completed")
+    if review_item.extracted_fields is None:
+        raise HTTPException(status_code=410, detail="extracted fields have been purged")
+
+    try:
+        pushes = push_to_destinations(conn, workspace_id, review_item.id, review_item.extracted_fields)
+    except DestinationError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    all_succeeded = all(push["status"] == "succeeded" for push in pushes)
+
+    if all_succeeded:
+        _finalize_successful_approval(conn, review_item, reviewer, pushes)
+    else:
+        _record_failed_push_attempt(conn, review_item, reviewer)
+
+    workflow_run = conn.execute("SELECT * FROM workflow_runs WHERE id = ?", (review_item.id,)).fetchone()
+    return ApprovalResult(
+        workflow_run=row_to_workflow_run(workflow_run),
+        destination_pushes=[DestinationPush(**push) for push in pushes],
+        all_succeeded=all_succeeded,
+    )
 
 
 @workflow_router.get("/review-queue", response_model=list[ReviewQueueItem])
@@ -155,7 +241,11 @@ def get_review_run(
     review_item = _get_review_item(conn, workflow_run_id, actor.workspace.id)
     if review_item is None:
         raise HTTPException(status_code=404, detail="workflow run not found")
-    return ReviewRunDetail(**review_item.model_dump(), source_preview=_source_preview(review_item.document))
+    return ReviewRunDetail(
+        **review_item.model_dump(),
+        source_preview=_source_preview(review_item.document),
+        destination_pushes=[DestinationPush(**push) for push in list_pushes(conn, workflow_run_id)],
+    )
 
 
 @workflow_router.patch("/{workflow_run_id}/review/fields", response_model=WorkflowRun)
@@ -208,58 +298,32 @@ def export_workflow_run(
     raise HTTPException(status_code=422, detail="format must be json or csv")
 
 
-@workflow_router.post("/{workflow_run_id}/review/approve", response_model=WorkflowRun)
+@workflow_router.post("/{workflow_run_id}/review/approve", response_model=ApprovalResult)
 def approve_review_run(
     workflow_run_id: str,
     approval: ReviewApprovalRequest,
     conn: sqlite3.Connection = Depends(get_connection),
     actor: WorkspaceActor = Depends(require_reviewer),
-) -> WorkflowRun:
+) -> ApprovalResult:
     review_item = _get_review_item(conn, workflow_run_id, actor.workspace.id)
     if review_item is None:
         raise HTTPException(status_code=404, detail="workflow run not found")
-    timestamp = now_iso()
-    destination_record_id = _mock_destination_record_id(workflow_run_id)
-    source_document_deleted = _delete_source_document(review_item.document)
-    audit_summary = {
-        "approved_by": approval.reviewer,
-        "destination": "mock",
-        "destination_record_id": destination_record_id,
-        "export_formats": ["json", "csv"],
-        "source_document_deleted": source_document_deleted,
-    }
-    conn.execute(
-        """
-        UPDATE documents
-        SET deletion_status = ?
-        WHERE id = ?
-        """,
-        (DocumentDeletionStatus.DELETED.value, review_item.document.id),
-    )
-    conn.execute(
-        """
-        UPDATE workflow_runs
-        SET status = ?, review_status = ?, extracted_fields = ?, last_reviewed_by = ?, last_reviewed_at = ?,
-            approved_by = ?, approved_at = ?, destination_record_id = ?, audit_summary = ?, updated_at = ?
-        WHERE id = ?
-        """,
-        (
-            WorkflowRunStatus.COMPLETED.value,
-            ReviewStatus.APPROVED.value,
-            None,
-            approval.reviewer,
-            timestamp,
-            approval.reviewer,
-            timestamp,
-            destination_record_id,
-            json.dumps(audit_summary),
-            timestamp,
-            workflow_run_id,
-        ),
-    )
-    conn.commit()
-    workflow_run = conn.execute("SELECT * FROM workflow_runs WHERE id = ?", (workflow_run_id,)).fetchone()
-    return row_to_workflow_run(workflow_run)
+    return _execute_approval_push(conn, review_item, approval.reviewer, actor.workspace.id)
+
+
+@workflow_router.post("/{workflow_run_id}/review/retry-push", response_model=ApprovalResult)
+def retry_destination_push(
+    workflow_run_id: str,
+    approval: ReviewApprovalRequest,
+    conn: sqlite3.Connection = Depends(get_connection),
+    actor: WorkspaceActor = Depends(require_reviewer),
+) -> ApprovalResult:
+    """Retry failed destination pushes. Succeeded destinations are never re-pushed,
+    so retries cannot create duplicate destination records."""
+    review_item = _get_review_item(conn, workflow_run_id, actor.workspace.id)
+    if review_item is None:
+        raise HTTPException(status_code=404, detail="workflow run not found")
+    return _execute_approval_push(conn, review_item, approval.reviewer, actor.workspace.id)
 
 
 @workflow_router.delete("/{workflow_run_id}", status_code=status.HTTP_204_NO_CONTENT)

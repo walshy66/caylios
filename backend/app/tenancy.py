@@ -55,6 +55,15 @@ def create_workspace_record(conn: sqlite3.Connection, name: str, subdomain: str)
         "INSERT INTO workspace_feature_flags (workspace_id, feature_key, enabled, updated_at) VALUES (?, ?, 1, ?)",
         (workspace_id, FeatureKey.WORKFLOW_AUTOMATION.value, timestamp),
     )
+    # Every new workspace starts with the mock destination connected so the
+    # approval pipeline is demonstrable before real connectors are configured.
+    conn.execute(
+        """
+        INSERT INTO connector_connections (id, workspace_id, provider, status, created_at, updated_at)
+        VALUES (?, ?, 'mock', 'connected', ?, ?)
+        """,
+        (str(uuid4()), workspace_id, timestamp, timestamp),
+    )
     conn.commit()
     return conn.execute("SELECT * FROM workspaces WHERE id = ?", (workspace_id,)).fetchone()
 

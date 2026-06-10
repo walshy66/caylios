@@ -30,6 +30,11 @@ def seed_review_run(tmp_path, deleted=False):
             ("workspace-dev", "coachcw", "coachcw", timestamp, timestamp),
         )
         conn.execute(
+            "INSERT INTO connector_connections (id, workspace_id, provider, status, created_at, updated_at)"
+            " VALUES ('conn-mock', 'workspace-dev', 'mock', 'connected', ?, ?)",
+            (timestamp, timestamp),
+        )
+        conn.execute(
             """
             INSERT INTO documents (
                 id, workspace_id, filename, content_type, size_bytes, intent, temporary_storage_path,
@@ -133,8 +138,9 @@ def test_review_fields_can_be_updated_and_approval_requires_screen_review(monkey
     assert update.json()["last_reviewed_by"] == "reviewer-1"
     assert rejected.status_code == 422
     assert approved.status_code == 200
-    assert approved.json()["review_status"] == "approved"
-    assert approved.json()["approved_by"] == "reviewer-1"
+    assert approved.json()["all_succeeded"] is True
+    assert approved.json()["workflow_run"]["review_status"] == "approved"
+    assert approved.json()["workflow_run"]["approved_by"] == "reviewer-1"
     assert queue.json() == []
 
 
@@ -155,17 +161,15 @@ def test_approved_run_exports_writeback_audits_and_purges_sensitive_source(monke
     rows = list(csv.DictReader(StringIO(csv_export.text)))
     assert rows == [{"field": "summary", "value": "Original"}, {"field": "count", "value": "1"}]
 
-    payload = approved.json()
+    payload = approved.json()["workflow_run"]
     assert payload["status"] == "completed"
     assert payload["review_status"] == "approved"
     assert payload["destination_record_id"].startswith("mock-destination-")
     assert payload["extracted_fields"] is None
-    assert payload["audit_summary"] == {
-        "approved_by": "reviewer-1",
-        "destination": "mock",
-        "destination_record_id": payload["destination_record_id"],
-        "export_formats": ["json", "csv"],
-        "source_document_deleted": True,
-    }
+    audit = payload["audit_summary"]
+    assert audit["approved_by"] == "reviewer-1"
+    assert audit["source_document_deleted"] is True
+    assert audit["destinations"][0]["provider"] == "mock"
+    assert audit["destinations"][0]["status"] == "succeeded"
     assert source_path.exists() is False
     assert detail.json()["document"]["deletion_status"] == "deleted"

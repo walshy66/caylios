@@ -389,3 +389,54 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* Intake form + review flagging (COA-275/276) */
+.intake-form-panel fieldset {
+  border: 1px solid rgba(125, 125, 125, 0.35);
+  border-radius: 10px;
+  margin: 12px 0;
+  padding: 10px 12px;
+}
+
+.intake-form-panel label {
+  display: block;
+  margin: 8px 0;
+}
+
+.intake-draft-note {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.field-flagged .form-control {
+  border: 2px solid #d97706;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.field-flag-note {
+  display: block;
+  color: #d97706;
+}
+
+.flagged-fields {
+  border: 2px solid #d97706;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin: 10px 0;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.flagged-fields ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.dev-auth-controls input {
+  margin-left: 8px;
+}
+
+.auth-signed-out {
+  max-width: 420px;
+  margin: 15vh auto;
+  text-align: center;
+}

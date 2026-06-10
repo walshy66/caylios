@@ -70,12 +70,37 @@ export type ReviewQueueItem = WorkflowRun & {
   document: DocumentMetadata;
 };
 
+export type DestinationPush = {
+  id: string;
+  workflow_run_id: string;
+  workspace_id: string;
+  provider: string;
+  status: 'pending' | 'succeeded' | 'failed';
+  destination_record_id: string | null;
+  error_message: string | null;
+  attempted_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ApprovalResult = {
+  workflow_run: WorkflowRun;
+  destination_pushes: DestinationPush[];
+  all_succeeded: boolean;
+};
+
+export type ExtractionPreview = {
+  fields: Record<string, unknown>;
+  suggested_classification: string | null;
+};
+
 export type ReviewRunDetail = ReviewQueueItem & {
   source_preview: {
     available: boolean;
     content: string | null;
     reason: string | null;
   };
+  destination_pushes: DestinationPush[];
 };
 
 export type DocumentUploadResult = {
@@ -176,9 +201,46 @@ export function updateReviewFields(id: string, reviewer: string, extractedFields
   });
 }
 
-export function approveReviewRun(id: string, reviewer: string): Promise<WorkflowRun> {
-  return request<WorkflowRun>(`/workflow-runs/${id}/review/approve`, {
+export function approveReviewRun(id: string, reviewer: string): Promise<ApprovalResult> {
+  return request<ApprovalResult>(`/workflow-runs/${id}/review/approve`, {
     method: 'POST',
     body: JSON.stringify({ reviewer, fields_reviewed: true }),
   });
+}
+
+export function retryDestinationPush(id: string, reviewer: string): Promise<ApprovalResult> {
+  return request<ApprovalResult>(`/workflow-runs/${id}/review/retry-push`, {
+    method: 'POST',
+    body: JSON.stringify({ reviewer, fields_reviewed: true }),
+  });
+}
+
+export async function submitIntakeForm(formData: FormData): Promise<DocumentUploadResult> {
+  const authHeaders = await authHeadersProvider();
+  const response = await fetch(`${API_BASE_URL}/submissions`, {
+    method: 'POST',
+    headers: authHeaders,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<DocumentUploadResult>;
+}
+
+export async function extractPreview(formData: FormData): Promise<ExtractionPreview> {
+  const authHeaders = await authHeadersProvider();
+  const response = await fetch(`${API_BASE_URL}/submissions/extract-preview`, {
+    method: 'POST',
+    headers: authHeaders,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<ExtractionPreview>;
 }

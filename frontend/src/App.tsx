@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { listSessions, restartSession, resumeSession, Session, startSession, stopSession } from './api';
 import DocumentUploadPanel from './components/DocumentUploadPanel';
+import IntakeFormPanel from './components/IntakeFormPanel';
 import ReviewQueuePanel from './components/ReviewQueuePanel';
 import SessionCreateForm from './components/SessionCreateForm';
 import { AuthControls } from './auth';
@@ -82,6 +83,7 @@ export default function App() {
       </header>
       <div className="session-dashboard">
         <div className="session-sidebar">
+          <IntakeFormPanel />
           <DocumentUploadPanel />
           <ReviewQueuePanel />
           <SessionCreateForm onCreated={handleSessionCreated} />

@@ -9,8 +9,16 @@ export type ReviewApprovalState = {
   fieldsAreValid: boolean;
 };
 
-export type ApprovalCompletion = {
+export type PushOutcome = {
+  provider: string;
+  status: 'pending' | 'succeeded' | 'failed';
   destination_record_id: string | null;
+  error_message: string | null;
+};
+
+export type ApprovalOutcome = {
+  all_succeeded: boolean;
+  destination_pushes: PushOutcome[];
 };
 
 export function parseEditableFields(value: string): Record<string, unknown> {
@@ -48,9 +56,41 @@ export function formatSourcePreview(sourcePreview: SourcePreview): string {
   return `Source unavailable: ${sourcePreview.reason || 'not available'}`;
 }
 
-export function formatApprovalCompletion(completion: ApprovalCompletion): string {
-  if (!completion.destination_record_id) {
-    return 'Approved; no destination record was returned.';
+export function formatApprovalOutcome(outcome: ApprovalOutcome): string {
+  if (outcome.all_succeeded) {
+    const records = outcome.destination_pushes
+      .filter((push) => push.destination_record_id)
+      .map((push) => `${push.provider}: ${push.destination_record_id}`);
+    const suffix = records.length > 0 ? ` (${records.join(', ')})` : '';
+    return `Approved. Data pushed to all destinations and purged from SimpleTS${suffix}.`;
   }
-  return `Approved and written to mock destination record ${completion.destination_record_id}.`;
+  const failed = outcome.destination_pushes.filter((push) => push.status === 'failed');
+  const failures = failed.map((push) => `${push.provider}: ${push.error_message ?? 'push failed'}`).join('; ');
+  return `Some destinations failed — data is retained until resolved. ${failures}`;
+}
+
+/** Names of fields the extraction flagged for reviewer attention. */
+export function flaggedFieldNames(extractedFields: Record<string, unknown> | null): string[] {
+  if (!extractedFields) {
+    return [];
+  }
+  const meta = extractedFields['_extraction'] as { flagged_fields?: unknown } | undefined;
+  if (!meta || !Array.isArray(meta.flagged_fields)) {
+    return [];
+  }
+  return meta.flagged_fields.filter((name): name is string => typeof name === 'string');
+}
+
+export function flagReason(extractedFields: Record<string, unknown> | null, fieldName: string): string | null {
+  if (!extractedFields) {
+    return null;
+  }
+  const meta = extractedFields['_extraction'] as
+    | { field_details?: Record<string, { flag_reason?: string | null }> }
+    | undefined;
+  return meta?.field_details?.[fieldName]?.flag_reason ?? null;
+}
+
+export function hasFailedPushes(pushes: PushOutcome[]): boolean {
+  return pushes.some((push) => push.status === 'failed');
 }

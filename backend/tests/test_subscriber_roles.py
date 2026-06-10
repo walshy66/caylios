@@ -33,6 +33,11 @@ def seed_workspace_with_staff(tmp_path) -> None:
             "INSERT INTO workspaces (id, name, subdomain, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
             ("ws-a", "Client A", "clienta", timestamp, timestamp),
         )
+        conn.execute(
+            "INSERT INTO connector_connections (id, workspace_id, provider, status, created_at, updated_at)"
+            " VALUES ('conn-mock', 'ws-a', 'mock', 'connected', ?, ?)",
+            (timestamp, timestamp),
+        )
         for index, (user_id, role) in enumerate(
             [("alice-admin", "admin"), ("rita-reviewer", "reviewer"), ("oscar-operator", "operator")]
         ):

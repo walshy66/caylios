@@ -181,8 +181,28 @@ class SourcePreview(BaseModel):
     reason: str | None = None
 
 
+class DestinationPush(BaseModel):
+    id: str
+    workflow_run_id: str
+    workspace_id: str
+    provider: str
+    status: str
+    destination_record_id: str | None = None
+    error_message: str | None = None
+    attempted_at: str | None = None
+    created_at: str
+    updated_at: str
+
+
+class ApprovalResult(BaseModel):
+    workflow_run: "WorkflowRun"
+    destination_pushes: list[DestinationPush]
+    all_succeeded: bool
+
+
 class ReviewRunDetail(ReviewQueueItem):
     source_preview: SourcePreview
+    destination_pushes: list[DestinationPush] = []
 
 
 class ReviewFieldsUpdate(BaseModel):
@@ -220,3 +240,8 @@ class ReviewApprovalRequest(BaseModel):
 class DocumentUploadResult(BaseModel):
     document: DocumentMetadata
     workflow_run: WorkflowRun
+
+
+class ExtractionPreview(BaseModel):
+    fields: dict[str, Any]
+    suggested_classification: str | None = None

@@ -160,6 +160,26 @@ def init_db() -> None:
             """
         )
 
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS destination_pushes (
+                id TEXT PRIMARY KEY,
+                workflow_run_id TEXT NOT NULL,
+                workspace_id TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('pending', 'succeeded', 'failed')),
+                destination_record_id TEXT,
+                error_message TEXT,
+                attempted_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE (workflow_run_id, provider),
+                FOREIGN KEY (workflow_run_id) REFERENCES workflow_runs(id),
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+
         document_columns = {column[1] for column in conn.execute("PRAGMA table_info(documents)").fetchall()}
         if "workspace_id" not in document_columns:
             conn.execute("ALTER TABLE documents ADD COLUMN workspace_id TEXT")
