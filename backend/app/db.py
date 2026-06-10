@@ -139,6 +139,27 @@ def init_db() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS connector_connections (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('connected', 'disconnected')),
+                encrypted_access_token TEXT,
+                encrypted_refresh_token TEXT,
+                token_expires_at TEXT,
+                scopes TEXT,
+                external_account_label TEXT,
+                disconnect_reason TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE (workspace_id, provider),
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+
         document_columns = {column[1] for column in conn.execute("PRAGMA table_info(documents)").fetchall()}
         if "workspace_id" not in document_columns:
             conn.execute("ALTER TABLE documents ADD COLUMN workspace_id TEXT")

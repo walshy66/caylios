@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.models import (
     ActivityTag,
+    ConnectionStatus,
+    ConnectorProvider,
     DocumentDeletionStatus,
     FeatureKey,
     Harness,
@@ -85,6 +87,29 @@ class WorkspaceBrandingUpdate(BaseModel):
 
 class WorkspaceUserUpsert(BaseModel):
     role: WorkspaceRole
+
+
+class ConnectorConnection(BaseModel):
+    """Public connection state. Token material is intentionally absent."""
+
+    id: str
+    workspace_id: str
+    provider: ConnectorProvider
+    status: ConnectionStatus
+    token_expires_at: str | None = None
+    scopes: str | None = None
+    external_account_label: str | None = None
+    disconnect_reason: str | None = None
+    created_at: str
+    updated_at: str
+
+
+class ConnectorConnectionUpsert(BaseModel):
+    access_token: str = Field(min_length=1)
+    refresh_token: str | None = None
+    token_expires_at: str | None = None
+    scopes: str | None = None
+    external_account_label: str | None = None
 
 
 class WorkspaceUser(BaseModel):

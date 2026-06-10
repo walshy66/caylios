@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.connections import router as connections_router
 from app.documents import router as documents_router
 from app.documents import workflow_router
 from app.sessions import router as sessions_router
@@ -26,3 +27,4 @@ app.include_router(sessions_router)
 app.include_router(documents_router)
 app.include_router(workflow_router)
 app.include_router(workspaces_router)
+app.include_router(connections_router)
