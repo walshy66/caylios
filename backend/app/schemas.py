@@ -1,6 +1,18 @@
-from pydantic import BaseModel, Field, model_validator
+import json
+from typing import Any
 
-from app.models import ActivityTag, Harness, SessionStatus
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from app.models import (
+    ActivityTag,
+    DocumentDeletionStatus,
+    FeatureKey,
+    Harness,
+    ReviewStatus,
+    SessionStatus,
+    WorkflowRunStatus,
+    WorkspaceRole,
+)
 
 
 class SessionCreate(BaseModel):
@@ -49,3 +61,118 @@ class ActivityItem(BaseModel):
     tag: ActivityTag
     body: str = Field(min_length=1)
     created_at: str
+
+
+class Workspace(BaseModel):
+    id: str
+    name: str = Field(min_length=1)
+    created_at: str
+    updated_at: str
+
+
+class WorkspaceUser(BaseModel):
+    id: str
+    workspace_id: str
+    user_id: str
+    role: WorkspaceRole
+    created_at: str
+    updated_at: str
+
+
+class WorkspaceFeatureFlag(BaseModel):
+    workspace_id: str
+    feature_key: FeatureKey
+    enabled: bool
+    updated_at: str
+
+
+class DocumentMetadata(BaseModel):
+    id: str
+    filename: str
+    content_type: str | None
+    size_bytes: int
+    intent: str
+    temporary_storage_path: str
+    retention_expires_at: str
+    deletion_status: DocumentDeletionStatus
+    uploaded_at: str
+    uploader: str
+    is_permanent_archive: bool = False
+
+
+class WorkflowRun(BaseModel):
+    id: str
+    document_id: str
+    intent: str
+    status: WorkflowRunStatus
+    extraction_status: WorkflowRunStatus | None = None
+    extraction_error: str | None = None
+    suggested_classification: str | None = None
+    extracted_fields: dict[str, Any] | None = None
+    review_status: ReviewStatus = ReviewStatus.PENDING
+    last_reviewed_by: str | None = None
+    last_reviewed_at: str | None = None
+    approved_by: str | None = None
+    approved_at: str | None = None
+    destination_record_id: str | None = None
+    audit_summary: dict[str, Any] | None = None
+    created_at: str
+    updated_at: str
+
+    @field_validator("extracted_fields", "audit_summary", mode="before")
+    @classmethod
+    def parse_json_object_fields(cls, value: object) -> object:
+        if isinstance(value, str):
+            return json.loads(value)
+        return value
+
+
+class ReviewQueueItem(WorkflowRun):
+    document: DocumentMetadata
+
+
+class SourcePreview(BaseModel):
+    available: bool
+    content: str | None = None
+    reason: str | None = None
+
+
+class ReviewRunDetail(ReviewQueueItem):
+    source_preview: SourcePreview
+
+
+class ReviewFieldsUpdate(BaseModel):
+    reviewer: str = Field(min_length=1)
+    extracted_fields: dict[str, Any]
+
+    @field_validator("reviewer")
+    @classmethod
+    def validate_reviewer(cls, value: str) -> str:
+        clean_value = value.strip()
+        if not clean_value:
+            raise ValueError("reviewer is required")
+        return clean_value
+
+
+class ReviewApprovalRequest(BaseModel):
+    reviewer: str = Field(min_length=1)
+    fields_reviewed: bool
+
+    @field_validator("reviewer")
+    @classmethod
+    def validate_reviewer(cls, value: str) -> str:
+        clean_value = value.strip()
+        if not clean_value:
+            raise ValueError("reviewer is required")
+        return clean_value
+
+    @model_validator(mode="after")
+    def validate_fields_reviewed(self) -> "ReviewApprovalRequest":
+        if not self.fields_reviewed:
+            raise ValueError("extracted data screen must be reviewed before approval")
+        return self
+
+
+class DocumentUploadResult(BaseModel):
+    document: DocumentMetadata
+    workflow_run: WorkflowRun

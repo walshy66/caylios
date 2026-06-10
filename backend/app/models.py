@@ -23,3 +23,30 @@ class ActivityTag(StrEnum):
     STATUS = "status"
     PROMPT = "prompt"
     BRANCH = "branch"
+
+
+class WorkspaceRole(StrEnum):
+    ADMIN = "admin"
+    REVIEWER = "reviewer"
+    OPERATOR = "operator"
+
+
+class FeatureKey(StrEnum):
+    WORKFLOW_AUTOMATION = "workflow_automation"
+
+
+class DocumentDeletionStatus(StrEnum):
+    RETAINED = "retained"
+    DELETED = "deleted"
+
+
+class WorkflowRunStatus(StrEnum):
+    CREATED = "created"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    ERRORED = "errored"
+
+
+class ReviewStatus(StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"

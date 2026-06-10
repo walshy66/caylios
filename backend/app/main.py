@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.documents import router as documents_router
+from app.documents import workflow_router
 from app.sessions import router as sessions_router
 
 app = FastAPI(title="SimpleTS API")
@@ -20,3 +22,5 @@ def health() -> dict[str, str]:
 
 
 app.include_router(sessions_router)
+app.include_router(documents_router)
+app.include_router(workflow_router)

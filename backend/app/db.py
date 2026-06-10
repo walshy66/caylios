@@ -5,6 +5,7 @@ from typing import Iterator
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT_DIR / "data"
 DB_PATH = DATA_DIR / "simplets.sqlite3"
+UPLOADS_DIR = DATA_DIR / "uploads"
 
 
 def init_db() -> None:
@@ -49,6 +50,105 @@ def init_db() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workspaces (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workspace_users (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                role TEXT NOT NULL CHECK (role IN ('admin', 'reviewer', 'operator')),
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workspace_feature_flags (
+                workspace_id TEXT NOT NULL,
+                feature_key TEXT NOT NULL CHECK (feature_key IN ('workflow_automation')),
+                enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (workspace_id, feature_key),
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS documents (
+                id TEXT PRIMARY KEY,
+                filename TEXT NOT NULL,
+                content_type TEXT,
+                size_bytes INTEGER NOT NULL,
+                intent TEXT NOT NULL,
+                temporary_storage_path TEXT NOT NULL,
+                retention_expires_at TEXT NOT NULL,
+                deletion_status TEXT NOT NULL CHECK (deletion_status IN ('retained', 'deleted')),
+                uploaded_at TEXT NOT NULL,
+                uploader TEXT NOT NULL,
+                is_permanent_archive INTEGER NOT NULL CHECK (is_permanent_archive IN (0, 1)) DEFAULT 0
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workflow_runs (
+                id TEXT PRIMARY KEY,
+                document_id TEXT NOT NULL,
+                intent TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('created', 'running', 'completed', 'errored')),
+                extraction_status TEXT,
+                extraction_error TEXT,
+                suggested_classification TEXT,
+                extracted_fields TEXT,
+                review_status TEXT NOT NULL CHECK (review_status IN ('pending', 'approved')) DEFAULT 'pending',
+                last_reviewed_by TEXT,
+                last_reviewed_at TEXT,
+                approved_by TEXT,
+                approved_at TEXT,
+                destination_record_id TEXT,
+                audit_summary TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (document_id) REFERENCES documents(id)
+            )
+            """
+        )
+        workflow_run_columns = {column[1] for column in conn.execute("PRAGMA table_info(workflow_runs)").fetchall()}
+        if "extraction_status" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN extraction_status TEXT")
+        if "extraction_error" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN extraction_error TEXT")
+        if "suggested_classification" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN suggested_classification TEXT")
+        if "extracted_fields" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN extracted_fields TEXT")
+        if "review_status" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN review_status TEXT NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending', 'approved'))")
+        if "last_reviewed_by" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN last_reviewed_by TEXT")
+        if "last_reviewed_at" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN last_reviewed_at TEXT")
+        if "approved_by" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN approved_by TEXT")
+        if "approved_at" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN approved_at TEXT")
+        if "destination_record_id" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN destination_record_id TEXT")
+        if "audit_summary" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN audit_summary TEXT")
         conn.commit()
 
 
