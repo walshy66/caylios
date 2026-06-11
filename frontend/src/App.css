@@ -464,3 +464,93 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* Portal navigation and dashboard cards */
+.portal-nav {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 20px;
+}
+
+.portal-nav button {
+  padding: 8px 16px;
+  border-radius: 999px;
+}
+
+.portal-nav .portal-nav-active {
+  background: #0a5cff;
+  color: #fff;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-card {
+  text-align: left;
+  padding: 20px;
+  border: 1px solid rgba(125, 125, 125, 0.35);
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.dashboard-card h3 {
+  margin-top: 0;
+}
+
+.dashboard-card-static {
+  cursor: default;
+}
+
+.dashboard-card-stat {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 4px 0;
+}
+
+.usage-bar {
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(125, 125, 125, 0.25);
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.usage-bar-fill {
+  height: 100%;
+  background: #0a5cff;
+  border-radius: 999px;
+}
+
+/* Forms page */
+.forms-list {
+  display: grid;
+  gap: 12px;
+}
+
+.forms-list-card {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid rgba(125, 125, 125, 0.35);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.forms-list-sample {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.form-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.form-status-live {
+  color: #15803d;
+}
