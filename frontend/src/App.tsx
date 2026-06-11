@@ -20,8 +20,8 @@ export default function App() {
       </header>
       <div className="portal-layout">
         <IntakeFormPanel />
-        <ReviewQueuePanel />
         <WorkflowCanvasPanel />
+        <ReviewQueuePanel />
       </div>
       {agentDashboardEnabled ? <AgentSessionsDashboard /> : null}
     </main>

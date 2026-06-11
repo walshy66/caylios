@@ -455,7 +455,7 @@ button:disabled {
   align-items: start;
 }
 
-.portal-layout .workflow-canvas-panel {
+.portal-layout .review-queue-panel {
   grid-column: 1 / -1;
 }
 
