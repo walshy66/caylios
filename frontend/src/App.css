@@ -447,3 +447,20 @@ button:disabled {
   border: 1px solid rgba(125, 125, 125, 0.35);
   border-radius: 10px;
 }
+
+.portal-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.portal-layout .workflow-canvas-panel {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .portal-layout {
+    grid-template-columns: 1fr;
+  }
+}
