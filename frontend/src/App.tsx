@@ -3,6 +3,7 @@ import { listSessions, restartSession, resumeSession, Session, startSession, sto
 import DocumentUploadPanel from './components/DocumentUploadPanel';
 import IntakeFormPanel from './components/IntakeFormPanel';
 import ReviewQueuePanel from './components/ReviewQueuePanel';
+import WorkflowCanvasPanel from './components/WorkflowCanvasPanel';
 import SessionCreateForm from './components/SessionCreateForm';
 import { AuthControls } from './auth';
 import { resolveSelectedSession } from './sessionSelectionModel';
@@ -86,6 +87,7 @@ export default function App() {
           <IntakeFormPanel />
           <DocumentUploadPanel />
           <ReviewQueuePanel />
+          <WorkflowCanvasPanel />
           <SessionCreateForm onCreated={handleSessionCreated} />
           <SessionList
             sessions={sessions}

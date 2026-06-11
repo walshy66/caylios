@@ -186,6 +186,10 @@ export async function deleteWorkflowRun(id: string): Promise<void> {
   }
 }
 
+export function getWorkflowCanvas(): Promise<{ embed_url: string }> {
+  return request<{ embed_url: string }>('/workspaces/current/canvas');
+}
+
 export function listReviewQueue(): Promise<ReviewQueueItem[]> {
   return request<ReviewQueueItem[]>('/workflow-runs/review-queue');
 }

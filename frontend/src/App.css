@@ -440,3 +440,10 @@ button:disabled {
   margin: 15vh auto;
   text-align: center;
 }
+
+.workflow-canvas-frame {
+  width: 100%;
+  min-height: 70vh;
+  border: 1px solid rgba(125, 125, 125, 0.35);
+  border-radius: 10px;
+}

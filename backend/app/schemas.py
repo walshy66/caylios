@@ -71,6 +71,7 @@ class Workspace(BaseModel):
     subdomain: str | None = None
     branding_logo_url: str | None = None
     branding_primary_color: str | None = None
+    activepieces_project_id: str | None = None
     created_at: str
     updated_at: str
 
@@ -87,6 +88,10 @@ class WorkspaceBrandingUpdate(BaseModel):
 
 class WorkspaceUserUpsert(BaseModel):
     role: WorkspaceRole
+
+
+class WorkspaceCanvasUpdate(BaseModel):
+    activepieces_project_id: str | None = None
 
 
 class ConnectorConnection(BaseModel):

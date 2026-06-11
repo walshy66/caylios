@@ -58,6 +58,7 @@ def init_db() -> None:
                 subdomain TEXT,
                 branding_logo_url TEXT,
                 branding_primary_color TEXT,
+                activepieces_project_id TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -70,6 +71,8 @@ def init_db() -> None:
             conn.execute("ALTER TABLE workspaces ADD COLUMN branding_logo_url TEXT")
         if "branding_primary_color" not in workspace_columns:
             conn.execute("ALTER TABLE workspaces ADD COLUMN branding_primary_color TEXT")
+        if "activepieces_project_id" not in workspace_columns:
+            conn.execute("ALTER TABLE workspaces ADD COLUMN activepieces_project_id TEXT")
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_workspaces_subdomain ON workspaces(subdomain)")
         conn.execute(
             """

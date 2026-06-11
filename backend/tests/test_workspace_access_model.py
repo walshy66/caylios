@@ -35,6 +35,7 @@ def test_workspace_tables_define_users_roles_and_feature_flags(monkeypatch, tmp_
             "subdomain",
             "branding_logo_url",
             "branding_primary_color",
+            "activepieces_project_id",
             "created_at",
             "updated_at",
         ]
