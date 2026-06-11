@@ -1,9 +1,12 @@
+import os
 import sqlite3
 from pathlib import Path
 from typing import Iterator
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOT_DIR / "data"
+# Local dev keeps data in the repo's gitignored data/ folder; deployed machines
+# point STS_DATA_DIR at a mounted volume (see backend/fly.toml).
+DATA_DIR = Path(os.environ.get("STS_DATA_DIR", "") or ROOT_DIR / "data")
 DB_PATH = DATA_DIR / "simplets.sqlite3"
 UPLOADS_DIR = DATA_DIR / "uploads"
 
