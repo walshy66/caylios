@@ -8,7 +8,7 @@ downstream workflow execution must treat as a hard stop, never a silent skip.
 
 import os
 import sqlite3
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Callable
 from uuid import uuid4
 
@@ -19,7 +19,7 @@ from app import db
 from app.auth import WorkspaceActor, require_admin, require_any_staff
 from app.db import get_connection
 from app.models import ConnectionStatus, ConnectorProvider
-from app.schemas import ConnectorConnection, ConnectorConnectionUpsert
+from app.schemas import ConnectorCodeExchange, ConnectorConnection, ConnectorConnectionUpsert
 
 router = APIRouter(prefix="/connections", tags=["connections"])
 
@@ -241,6 +241,62 @@ def connect_provider(
         token_expires_at=payload.token_expires_at,
         scopes=payload.scopes,
         external_account_label=payload.external_account_label,
+    )
+    return ConnectorConnection(**dict(_public_row(conn, actor.workspace.id, provider)))
+
+
+@router.get("/{provider}/authorize-url")
+def get_authorize_url(
+    provider: str,
+    redirect_uri: str,
+    actor: WorkspaceActor = Depends(require_admin),
+) -> dict[str, str]:
+    """Start the per-workspace OAuth consent flow. The state value ties the
+    callback to this workspace; the frontend sends the user to the URL."""
+    from app.connectors import build_authorize_url
+    from app.destinations import DestinationError
+
+    provider = _validate_provider(provider)
+    if provider == ConnectorProvider.MOCK.value:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="mock needs no authorization")
+    state = f"{actor.workspace.id}:{uuid4()}"
+    try:
+        url = build_authorize_url(provider, redirect_uri=redirect_uri, state=state)
+    except DestinationError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    return {"authorize_url": url, "state": state}
+
+
+@router.post("/{provider}/exchange", response_model=ConnectorConnection)
+def exchange_code(
+    provider: str,
+    payload: ConnectorCodeExchange,
+    actor: WorkspaceActor = Depends(require_admin),
+    conn: sqlite3.Connection = Depends(get_connection),
+) -> ConnectorConnection:
+    """Complete the consent flow: exchange the authorization code and store the
+    workspace-scoped tokens encrypted."""
+    from app.connectors import exchange_authorization_code
+    from app.destinations import DestinationError
+
+    provider = _validate_provider(provider)
+    try:
+        tokens = exchange_authorization_code(provider, payload.code, payload.redirect_uri)
+    except DestinationError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc))
+
+    expires_at = None
+    if tokens.get("expires_in"):
+        expires_at = (datetime.now(UTC) + timedelta(seconds=int(tokens["expires_in"]))).isoformat()
+    upsert_connection(
+        conn,
+        actor.workspace.id,
+        provider,
+        access_token=tokens["access_token"],
+        refresh_token=tokens.get("refresh_token"),
+        token_expires_at=expires_at,
+        scopes=tokens.get("scopes"),
+        external_account_label=payload.account_label,
     )
     return ConnectorConnection(**dict(_public_row(conn, actor.workspace.id, provider)))
 

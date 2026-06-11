@@ -104,6 +104,12 @@ class ConnectorConnection(BaseModel):
     updated_at: str
 
 
+class ConnectorCodeExchange(BaseModel):
+    code: str = Field(min_length=1)
+    redirect_uri: str = Field(min_length=1)
+    account_label: str | None = None
+
+
 class ConnectorConnectionUpsert(BaseModel):
     access_token: str = Field(min_length=1)
     refresh_token: str | None = None

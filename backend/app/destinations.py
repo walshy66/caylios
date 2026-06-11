@@ -164,12 +164,25 @@ def push_to_destinations(
             _record_push(conn, workflow_run_id, workspace_id, provider, PUSH_FAILED, None,
                          f"no adapter implemented for {provider}")
             continue
+        connection_row = conn.execute(
+            "SELECT external_account_label, scopes FROM connector_connections"
+            " WHERE workspace_id = ? AND provider = ?",
+            (workspace_id, provider),
+        ).fetchone()
+        provider_context = {
+            **context,
+            "connection": dict(connection_row) if connection_row is not None else {},
+        }
         try:
             if provider == "mock":
                 access_token = ""
             else:
-                access_token = get_valid_access_token(conn, workspace_id, provider)
-            record_id = adapter.push(access_token, clean_fields, context)
+                from app.connectors import make_refresher
+
+                access_token = get_valid_access_token(
+                    conn, workspace_id, provider, refresher=make_refresher(provider)
+                )
+            record_id = adapter.push(access_token, clean_fields, provider_context)
         except ConnectorDisconnected as exc:
             _record_push(conn, workflow_run_id, workspace_id, provider, PUSH_FAILED, None,
                          f"connector disconnected: {exc.reason}")
