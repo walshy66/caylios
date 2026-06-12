@@ -1,94 +1,69 @@
 import { useEffect, useState } from 'react';
-import { listSessions, restartSession, resumeSession, Session, startSession, stopSession } from './api';
-import SessionCreateForm from './components/SessionCreateForm';
-import { resolveSelectedSession } from './sessionSelectionModel';
-import SessionDetail from './components/SessionDetail';
-import SessionList from './components/SessionList';
+import AgentSessionsDashboard from './components/AgentSessionsDashboard';
+import DashboardPage from './components/DashboardPage';
+import FormsPage from './components/FormsPage';
+import ReviewQueuePanel from './components/ReviewQueuePanel';
+import WorkflowCanvasPanel from './components/WorkflowCanvasPanel';
+import { AuthControls } from './auth';
+import { PortalRoute, parseRoute, routePath } from './dashboardModel';
 import './App.css';
 
-const SELECTED_SESSION_STORAGE_KEY = 'simplets.selectedSessionId';
+// Legacy coding-agent dashboard stays in the codebase but out of the product UI.
+const agentDashboardEnabled = import.meta.env.VITE_ENABLE_AGENT_DASHBOARD === 'true';
 
-function getStoredSelectedSessionId(): string | null {
-  return window.localStorage.getItem(SELECTED_SESSION_STORAGE_KEY);
-}
+const NAV_ITEMS: { route: PortalRoute; label: string }[] = [
+  { route: 'dashboard', label: 'Dashboard' },
+  { route: 'forms', label: 'Forms' },
+  { route: 'workflows', label: 'Workflows' },
+  { route: 'review', label: 'Review queue' },
+];
 
 export default function App() {
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(() => getStoredSelectedSessionId());
-  const [selected, setSelected] = useState<Session | null>(null);
-
-  async function refreshSessions() {
-    const nextSessions = await listSessions();
-    setSessions(nextSessions);
-    setSelected(resolveSelectedSession(nextSessions, selectedId));
-  }
+  const [route, setRoute] = useState<PortalRoute>(() => parseRoute(window.location.pathname));
 
   useEffect(() => {
-    refreshSessions();
+    const onPopState = () => setRoute(parseRoute(window.location.pathname));
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  useEffect(() => {
-    if (selectedId) {
-      window.localStorage.setItem(SELECTED_SESSION_STORAGE_KEY, selectedId);
-    } else {
-      window.localStorage.removeItem(SELECTED_SESSION_STORAGE_KEY);
-    }
-  }, [selectedId]);
-
-  function handleSessionSelected(session: Session) {
-    setSelectedId(session.id);
-    setSelected(session);
+  function navigate(next: PortalRoute) {
+    window.history.pushState(null, '', routePath(next));
+    setRoute(next);
   }
 
-  function handleSessionChanged(session: Session) {
-    setSelectedId(session.id);
-    setSelected(session);
-    setSessions((current) => current.map((item) => (item.id === session.id ? session : item)));
-  }
-
-  function handleSessionCreated(session: Session) {
-    setSessions((current) => [session, ...current]);
-    setSelectedId(session.id);
-    setSelected(session);
-  }
-
-  async function handleSessionStart(session: Session) {
-    handleSessionChanged(await startSession(session.id));
-  }
-
-  async function handleSessionStop(session: Session) {
-    handleSessionChanged(await stopSession(session.id));
-  }
-
-  async function handleSessionResume(session: Session) {
-    handleSessionChanged(await resumeSession(session.id));
-  }
-
-  async function handleSessionRestart(session: Session) {
-    handleSessionChanged(await restartSession(session.id));
+  // The canvas takes over the whole viewport; the engine's own sidebar logo
+  // navigates back to the STS dashboard once the user is at its home page.
+  if (route === 'workflows') {
+    return <WorkflowCanvasPanel fullScreen />;
   }
 
   return (
     <main className="app-shell">
       <header className="app-header">
-        <h1>SimpleTS</h1>
-        <p>Local laptop MVP for managing coding-agent sessions.</p>
-      </header>
-      <div className="session-dashboard">
-        <div className="session-sidebar">
-          <SessionCreateForm onCreated={handleSessionCreated} />
-          <SessionList
-            sessions={sessions}
-            selectedId={selected?.id || null}
-            onSelect={handleSessionSelected}
-            onStart={handleSessionStart}
-            onStop={handleSessionStop}
-            onResume={handleSessionResume}
-            onRestart={handleSessionRestart}
-          />
+        <div>
+          <h1>SimpleTS</h1>
+          <p>Submit once → review once → distribute everywhere.</p>
         </div>
-        <SessionDetail session={selected} onChanged={handleSessionChanged} />
-      </div>
+        <AuthControls />
+      </header>
+      <nav className="portal-nav" aria-label="Portal">
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.route}
+            type="button"
+            className={route === item.route ? 'portal-nav-active' : undefined}
+            onClick={() => navigate(item.route)}
+            aria-current={route === item.route ? 'page' : undefined}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+      {route === 'dashboard' ? <DashboardPage onNavigate={navigate} /> : null}
+      {route === 'forms' ? <FormsPage /> : null}
+      {route === 'review' ? <ReviewQueuePanel /> : null}
+      {agentDashboardEnabled ? <AgentSessionsDashboard /> : null}
     </main>
   );
 }

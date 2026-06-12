@@ -1,6 +1,20 @@
-from pydantic import BaseModel, Field, model_validator
+import json
+from typing import Any
 
-from app.models import ActivityTag, Harness, SessionStatus
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from app.models import (
+    ActivityTag,
+    ConnectionStatus,
+    ConnectorProvider,
+    DocumentDeletionStatus,
+    FeatureKey,
+    Harness,
+    ReviewStatus,
+    SessionStatus,
+    WorkflowRunStatus,
+    WorkspaceRole,
+)
 
 
 class SessionCreate(BaseModel):
@@ -49,3 +63,196 @@ class ActivityItem(BaseModel):
     tag: ActivityTag
     body: str = Field(min_length=1)
     created_at: str
+
+
+class Workspace(BaseModel):
+    id: str
+    name: str = Field(min_length=1)
+    subdomain: str | None = None
+    branding_logo_url: str | None = None
+    branding_primary_color: str | None = None
+    activepieces_project_id: str | None = None
+    created_at: str
+    updated_at: str
+
+
+class WorkspaceCreate(BaseModel):
+    name: str = Field(min_length=1)
+    subdomain: str = Field(min_length=1)
+
+
+class WorkspaceBrandingUpdate(BaseModel):
+    logo_url: str | None = None
+    primary_color: str | None = None
+
+
+class WorkspaceUserUpsert(BaseModel):
+    role: WorkspaceRole
+
+
+class WorkspaceCanvasUpdate(BaseModel):
+    activepieces_project_id: str | None = None
+
+
+class ConnectorConnection(BaseModel):
+    """Public connection state. Token material is intentionally absent."""
+
+    id: str
+    workspace_id: str
+    provider: ConnectorProvider
+    status: ConnectionStatus
+    token_expires_at: str | None = None
+    scopes: str | None = None
+    external_account_label: str | None = None
+    disconnect_reason: str | None = None
+    created_at: str
+    updated_at: str
+
+
+class ConnectorCodeExchange(BaseModel):
+    code: str = Field(min_length=1)
+    redirect_uri: str = Field(min_length=1)
+    account_label: str | None = None
+
+
+class ConnectorConnectionUpsert(BaseModel):
+    access_token: str = Field(min_length=1)
+    refresh_token: str | None = None
+    token_expires_at: str | None = None
+    scopes: str | None = None
+    external_account_label: str | None = None
+
+
+class WorkspaceUser(BaseModel):
+    id: str
+    workspace_id: str
+    user_id: str
+    role: WorkspaceRole
+    created_at: str
+    updated_at: str
+
+
+class WorkspaceFeatureFlag(BaseModel):
+    workspace_id: str
+    feature_key: FeatureKey
+    enabled: bool
+    updated_at: str
+
+
+class DocumentMetadata(BaseModel):
+    id: str
+    workspace_id: str | None = None
+    filename: str
+    content_type: str | None
+    size_bytes: int
+    intent: str
+    temporary_storage_path: str
+    retention_expires_at: str
+    deletion_status: DocumentDeletionStatus
+    uploaded_at: str
+    uploader: str
+    is_permanent_archive: bool = False
+
+
+class WorkflowRun(BaseModel):
+    id: str
+    workspace_id: str | None = None
+    document_id: str
+    intent: str
+    status: WorkflowRunStatus
+    extraction_status: WorkflowRunStatus | None = None
+    extraction_error: str | None = None
+    suggested_classification: str | None = None
+    extracted_fields: dict[str, Any] | None = None
+    review_status: ReviewStatus = ReviewStatus.PENDING
+    last_reviewed_by: str | None = None
+    last_reviewed_at: str | None = None
+    approved_by: str | None = None
+    approved_at: str | None = None
+    destination_record_id: str | None = None
+    audit_summary: dict[str, Any] | None = None
+    created_at: str
+    updated_at: str
+
+    @field_validator("extracted_fields", "audit_summary", mode="before")
+    @classmethod
+    def parse_json_object_fields(cls, value: object) -> object:
+        if isinstance(value, str):
+            return json.loads(value)
+        return value
+
+
+class ReviewQueueItem(WorkflowRun):
+    document: DocumentMetadata
+
+
+class SourcePreview(BaseModel):
+    available: bool
+    content: str | None = None
+    reason: str | None = None
+
+
+class DestinationPush(BaseModel):
+    id: str
+    workflow_run_id: str
+    workspace_id: str
+    provider: str
+    status: str
+    destination_record_id: str | None = None
+    error_message: str | None = None
+    attempted_at: str | None = None
+    created_at: str
+    updated_at: str
+
+
+class ApprovalResult(BaseModel):
+    workflow_run: "WorkflowRun"
+    destination_pushes: list[DestinationPush]
+    all_succeeded: bool
+
+
+class ReviewRunDetail(ReviewQueueItem):
+    source_preview: SourcePreview
+    destination_pushes: list[DestinationPush] = []
+
+
+class ReviewFieldsUpdate(BaseModel):
+    reviewer: str = Field(min_length=1)
+    extracted_fields: dict[str, Any]
+
+    @field_validator("reviewer")
+    @classmethod
+    def validate_reviewer(cls, value: str) -> str:
+        clean_value = value.strip()
+        if not clean_value:
+            raise ValueError("reviewer is required")
+        return clean_value
+
+
+class ReviewApprovalRequest(BaseModel):
+    reviewer: str = Field(min_length=1)
+    fields_reviewed: bool
+
+    @field_validator("reviewer")
+    @classmethod
+    def validate_reviewer(cls, value: str) -> str:
+        clean_value = value.strip()
+        if not clean_value:
+            raise ValueError("reviewer is required")
+        return clean_value
+
+    @model_validator(mode="after")
+    def validate_fields_reviewed(self) -> "ReviewApprovalRequest":
+        if not self.fields_reviewed:
+            raise ValueError("extracted data screen must be reviewed before approval")
+        return self
+
+
+class DocumentUploadResult(BaseModel):
+    document: DocumentMetadata
+    workflow_run: WorkflowRun
+
+
+class ExtractionPreview(BaseModel):
+    fields: dict[str, Any]
+    suggested_classification: str | None = None

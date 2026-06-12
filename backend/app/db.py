@@ -1,10 +1,14 @@
+import os
 import sqlite3
 from pathlib import Path
 from typing import Iterator
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOT_DIR / "data"
+# Local dev keeps data in the repo's gitignored data/ folder; deployed machines
+# point STS_DATA_DIR at a mounted volume (see backend/fly.toml).
+DATA_DIR = Path(os.environ.get("STS_DATA_DIR", "") or ROOT_DIR / "data")
 DB_PATH = DATA_DIR / "simplets.sqlite3"
+UPLOADS_DIR = DATA_DIR / "uploads"
 
 
 def init_db() -> None:
@@ -49,6 +53,170 @@ def init_db() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workspaces (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                subdomain TEXT,
+                branding_logo_url TEXT,
+                branding_primary_color TEXT,
+                activepieces_project_id TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        workspace_columns = {column[1] for column in conn.execute("PRAGMA table_info(workspaces)").fetchall()}
+        if "subdomain" not in workspace_columns:
+            conn.execute("ALTER TABLE workspaces ADD COLUMN subdomain TEXT")
+        if "branding_logo_url" not in workspace_columns:
+            conn.execute("ALTER TABLE workspaces ADD COLUMN branding_logo_url TEXT")
+        if "branding_primary_color" not in workspace_columns:
+            conn.execute("ALTER TABLE workspaces ADD COLUMN branding_primary_color TEXT")
+        if "activepieces_project_id" not in workspace_columns:
+            conn.execute("ALTER TABLE workspaces ADD COLUMN activepieces_project_id TEXT")
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_workspaces_subdomain ON workspaces(subdomain)")
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workspace_users (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                role TEXT NOT NULL CHECK (role IN ('admin', 'reviewer', 'operator')),
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workspace_feature_flags (
+                workspace_id TEXT NOT NULL,
+                feature_key TEXT NOT NULL CHECK (feature_key IN ('workflow_automation')),
+                enabled INTEGER NOT NULL CHECK (enabled IN (0, 1)),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (workspace_id, feature_key),
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS documents (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT,
+                filename TEXT NOT NULL,
+                content_type TEXT,
+                size_bytes INTEGER NOT NULL,
+                intent TEXT NOT NULL,
+                temporary_storage_path TEXT NOT NULL,
+                retention_expires_at TEXT NOT NULL,
+                deletion_status TEXT NOT NULL CHECK (deletion_status IN ('retained', 'deleted')),
+                uploaded_at TEXT NOT NULL,
+                uploader TEXT NOT NULL,
+                is_permanent_archive INTEGER NOT NULL CHECK (is_permanent_archive IN (0, 1)) DEFAULT 0
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS workflow_runs (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT,
+                document_id TEXT NOT NULL,
+                intent TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('created', 'running', 'completed', 'errored')),
+                extraction_status TEXT,
+                extraction_error TEXT,
+                suggested_classification TEXT,
+                extracted_fields TEXT,
+                review_status TEXT NOT NULL CHECK (review_status IN ('pending', 'approved')) DEFAULT 'pending',
+                last_reviewed_by TEXT,
+                last_reviewed_at TEXT,
+                approved_by TEXT,
+                approved_at TEXT,
+                destination_record_id TEXT,
+                audit_summary TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (document_id) REFERENCES documents(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS connector_connections (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('connected', 'disconnected')),
+                encrypted_access_token TEXT,
+                encrypted_refresh_token TEXT,
+                token_expires_at TEXT,
+                scopes TEXT,
+                external_account_label TEXT,
+                disconnect_reason TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE (workspace_id, provider),
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS destination_pushes (
+                id TEXT PRIMARY KEY,
+                workflow_run_id TEXT NOT NULL,
+                workspace_id TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('pending', 'succeeded', 'failed')),
+                destination_record_id TEXT,
+                error_message TEXT,
+                attempted_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE (workflow_run_id, provider),
+                FOREIGN KEY (workflow_run_id) REFERENCES workflow_runs(id),
+                FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+            )
+            """
+        )
+
+        document_columns = {column[1] for column in conn.execute("PRAGMA table_info(documents)").fetchall()}
+        if "workspace_id" not in document_columns:
+            conn.execute("ALTER TABLE documents ADD COLUMN workspace_id TEXT")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_documents_workspace ON documents(workspace_id)")
+
+        workflow_run_columns = {column[1] for column in conn.execute("PRAGMA table_info(workflow_runs)").fetchall()}
+        if "workspace_id" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN workspace_id TEXT")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_workflow_runs_workspace ON workflow_runs(workspace_id)")
+        if "extraction_status" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN extraction_status TEXT")
+        if "extraction_error" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN extraction_error TEXT")
+        if "suggested_classification" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN suggested_classification TEXT")
+        if "extracted_fields" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN extracted_fields TEXT")
+        if "review_status" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN review_status TEXT NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending', 'approved'))")
+        if "last_reviewed_by" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN last_reviewed_by TEXT")
+        if "last_reviewed_at" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN last_reviewed_at TEXT")
+        if "approved_by" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN approved_by TEXT")
+        if "approved_at" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN approved_at TEXT")
+        if "destination_record_id" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN destination_record_id TEXT")
+        if "audit_summary" not in workflow_run_columns:
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN audit_summary TEXT")
         conn.commit()
 
 
