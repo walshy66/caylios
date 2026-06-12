@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Dashboard Themes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      margin-bottom: 10px;
+      font-size: 42px;
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 50px;
+      font-size: 18px;
+    }
+
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+    }
+
+    .theme-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .theme-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+    }
+
+    .theme-preview {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 18px;
+      color: white;
+    }
+
+    .preview-glassmorphism {
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1a4d 100%);
+    }
+
+    .preview-corporate {
+      background: linear-gradient(135deg, #0d1117 0%, #1a2537 100%);
+    }
+
+    .preview-airy {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e8eef5 100%);
+      color: #4a5568;
+    }
+
+    .preview-nature {
+      background: linear-gradient(135deg, #0f3f2f 0%, #1a4d42 100%);
+    }
+
+    .preview-orange {
+      background: linear-gradient(135deg, #2d1810 0%, #4a2820 100%);
+    }
+
+    .theme-content {
+      padding: 24px;
+    }
+
+    .theme-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+
+    .theme-description {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .theme-colors {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .theme-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+
+    .theme-link:hover {
+      transform: scale(1.05);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 80px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Agent Dashboard Themes</h1>
+    <p class="subtitle">5 carefully designed themes for COA-204 Agent Dashboard</p>
+
+    <div class="themes-grid">
+      <!-- Glassmorphism -->
+      <div class="theme-card">
+        <div class="theme-preview preview-glassmorphism">Glassmorphism</div>
+        <div class="theme-content">
+          <div class="theme-name">Glassmorphism</div>
+          <p class="theme-description">Modern, elegant design with translucent glass effects and frosted blur. Perfect for contemporary, tech-forward applications.</p>
+          <div class="theme-colors">
+            <div class="color-swatch" style="background: #0a0e27;"></div>
+            <div class="color-swatch" style="background: #7c3aed;"></div>
+            <div class="color-swatch" style="background: #3b82f6;"></div>
+            <div class="color-swatch" style="background: #e0e6ed;"></div>
+          </div>
+          <a href="glassmorphism.html" class="theme-link">Open Theme →</a>
+        </div>
+      </div>
+
+      <!-- Dark Corporate -->
+      <div class="theme-card">
+        <div class="theme-preview preview-corporate">Dark Corporate</div>
+        <div class="theme-content">
+          <div class="theme-name">Dark Corporate</div>
+          <p class="theme-description">Professional, enterprise-focused design with teal/cyan accents. Ideal for corporate environments and B2B applications.</p>
+          <div class="theme-colors">
+            <div class="color-swatch" style="background: #0d1117;"></div>
+            <div class="color-swatch" style="background: #06b6d4;"></div>
+            <div class="color-swatch" style="background: #0ea5e9;"></div>
+            <div class="color-swatch" style="background: #d4d8e0;"></div>
+          </div>
+          <a href="dark-corporate.html" class="theme-link">Open Theme →</a>
+        </div>
+      </div>
+
+      <!-- Light Airy -->
+      <div class="theme-card">
+        <div class="theme-preview preview-airy">Light Airy</div>
+        <div class="theme-content">
+          <div class="theme-name">Light Airy</div>
+          <p class="theme-description">Soft, inviting design with purple/pink pastels. Great for creative teams and user-friendly, modern SaaS applications.</p>
+          <div class="theme-colors">
+            <div class="color-swatch" style="background: #f8f9fa;"></div>
+            <div class="color-swatch" style="background: #7c3aed;"></div>
+            <div class="color-swatch" style="background: #ec4899;"></div>
+            <div class="color-swatch" style="background: #4a5568;"></div>
+          </div>
+          <a href="light-airy.html" class="theme-link">Open Theme →</a>
+        </div>
+      </div>
+
+      <!-- Green Nature -->
+      <div class="theme-card">
+        <div class="theme-preview preview-nature">Green Nature</div>
+        <div class="theme-content">
+          <div class="theme-name">Green Nature</div>
+          <p class="theme-description">Eco-friendly, nature-inspired design with forest greens. Perfect for sustainability, health & wellness products.</p>
+          <div class="theme-colors">
+            <div class="color-swatch" style="background: #0f3f2f;"></div>
+            <div class="color-swatch" style="background: #6ee7b7;"></div>
+            <div class="color-swatch" style="background: #10b981;"></div>
+            <div class="color-swatch" style="background: #d1e8e0;"></div>
+          </div>
+          <a href="green-nature.html" class="theme-link">Open Theme →</a>
+        </div>
+      </div>
+
+      <!-- Warm Orange -->
+      <div class="theme-card">
+        <div class="theme-preview preview-orange">Warm Orange</div>
+        <div class="theme-content">
+          <div class="theme-name">Warm Orange</div>
+          <p class="theme-description">Energetic, warm design with orange and amber accents. Ideal for creative, community-focused, brand-forward applications.</p>
+          <div class="theme-colors">
+            <div class="color-swatch" style="background: #2d1810;"></div>
+            <div class="color-swatch" style="background: #f97316;"></div>
+            <div class="color-swatch" style="background: #fb923c;"></div>
+            <div class="color-swatch" style="background: #f5e6d3;"></div>
+          </div>
+          <a href="warm-orange.html" class="theme-link">Open Theme →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>📖 <a href="README.md">Read the documentation</a> for detailed theme information and customization guides.</p>
+      <p style="margin-top: 10px;">Part of COA-204: Agent Dashboard</p>
+    </div>
+  </div>
+</body>
+</html>
