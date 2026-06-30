@@ -52,6 +52,12 @@ def _redacted_filename(filename: str) -> str:
     return f"[redacted]{suffix}" if suffix else "[redacted]"
 
 
+def _display_filename(filename: str) -> str:
+    name = Path(filename).name or "import"
+    cleaned = re.sub(r"[^A-Za-z0-9._() \-&]+", " ", name)
+    return " ".join(cleaned.split())[:120] or _redacted_filename(filename)
+
+
 def _get_workspace_import_job(job_id: str, workspace_id: str, conn: sqlite3.Connection) -> sqlite3.Row:
     row = conn.execute(
         "SELECT * FROM current_state_import_jobs WHERE id = ? AND workspace_id = ?",
@@ -122,7 +128,7 @@ def _drawio_geometry(cell: ET.Element) -> dict[str, float]:
     return {"x": float(geometry.attrib.get("x", 0) or 0), "y": float(geometry.attrib.get("y", 0) or 0)}
 
 
-def _normalise_drawio_layout(nodes: list[dict[str, object]], lanes: dict[str, dict[str, str]], phases: dict[str, dict[str, str]]) -> list[dict[str, object]]:
+def _normalise_import_layout(nodes: list[dict[str, object]], lanes: dict[str, dict[str, str]], phases: dict[str, dict[str, str]]) -> list[dict[str, object]]:
     """Render imported diagrams into a clean SimpleTS layout rather than preserving draw.io coordinates.
 
     draw.io stores many node coordinates relative to nested containers. Preserving
@@ -240,7 +246,7 @@ def _convert_drawio_to_draft_map(job_id: str, workspace_id: str, contents: bytes
 
     lanes = dict(sorted(lanes.items(), key=lambda item: (lane_source_y.get(item[0], 0), item[1]["title"])))
     phases = dict(sorted(phases.items(), key=lambda item: (phase_source_x.get(item[0], 0), item[1]["title"])))
-    nodes = _normalise_drawio_layout(nodes, lanes, phases)
+    nodes = _normalise_import_layout(nodes, lanes, phases)
 
     connectors: list[dict[str, str | None]] = []
     for cell_id, cell in cells.items():
@@ -255,9 +261,103 @@ def _convert_drawio_to_draft_map(job_id: str, workspace_id: str, contents: bytes
     return _insert_imported_map(job_id, workspace_id, title, list(lanes.values()), list(phases.values()), nodes, connectors, conn)
 
 
+def _mermaid_node_type(shape_start: str, shape_end: str, title: str) -> str:
+    lower_title = title.lower()
+    if {shape_start, shape_end} in ({"{", "}"}, {"{{", "}}"}):
+        return "decision"
+    if shape_start == "[/" or shape_start == "[\\":
+        return "document"
+    if lower_title in {"start", "begin"}:
+        return "start"
+    if lower_title in {"end", "finish", "stop"}:
+        return "end"
+    return "process"
+
+
+def _convert_mermaid_to_draft_map(job_id: str, workspace_id: str, contents: bytes, conn: sqlite3.Connection) -> tuple[str | None, str | None]:
+    text = contents.decode("utf-8", errors="ignore")
+    lanes = {"process": {"id": "process", "title": "Process"}}
+    phases = {"process": {"id": "process", "title": "Process"}}
+    nodes_by_key: dict[str, dict[str, object]] = {}
+    connectors: list[dict[str, str | None]] = []
+
+    def ensure_node(token: str) -> str:
+        token = token.strip().strip(";")
+        match = re.match(r"^([A-Za-z0-9_\-]+)\s*(\(\[|\[\/|\[\\|\{\{|\{|\(|\[)(.*?)(\]\)|\/\]|\\\]|\}\}|\}|\)|\])$", token)
+        if match:
+            node_id = _slug(match.group(1))
+            shape_start = match.group(2)
+            title = (match.group(3) or match.group(1)).strip().strip('"')
+            shape_end = match.group(4)
+        else:
+            simple = re.match(r"^([A-Za-z0-9_\-]+)$", token)
+            node_id = _slug(simple.group(1) if simple else token)
+            title = simple.group(1) if simple else token
+            shape_start = shape_end = ""
+        nodes_by_key.setdefault(node_id, {"id": node_id, "lane_id": "process", "phase_id": "process", "title": title, "node_type": _mermaid_node_type(shape_start, shape_end, title), "_source_x": float(len(nodes_by_key)), "_source_y": 0.0})
+        return node_id
+
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("%%") or line.lower().startswith(("flowchart", "graph", "sequence", "classdiagram")):
+            continue
+        match = re.match(r"(.+?)\s*(?:-->|---|==>|-.->)\s*(?:\|([^|]+)\|\s*)?(.+)", line.rstrip(";"))
+        if match:
+            source_id = ensure_node(match.group(1))
+            target_id = ensure_node(match.group(3))
+            label = " ".join((match.group(2) or "").split()) or None
+            connectors.append({"id": f"flow-{len(connectors) + 1}", "source_node_id": source_id, "target_node_id": target_id, "label": label})
+        elif re.match(r"^[A-Za-z0-9_\-]+", line):
+            ensure_node(line)
+
+    if not nodes_by_key:
+        return None, "could not extract process-map steps from uploaded artifact"
+    nodes = _normalise_import_layout(list(nodes_by_key.values()), lanes, phases)
+    return _insert_imported_map(job_id, workspace_id, "Imported Mermaid current-state map", list(lanes.values()), list(phases.values()), nodes, connectors, conn)
+
+
+def _convert_bpmn_to_draft_map(job_id: str, workspace_id: str, contents: bytes, conn: sqlite3.Connection) -> tuple[str | None, str | None]:
+    try:
+        root = ET.fromstring(contents.decode("utf-8", errors="ignore"))
+    except ET.ParseError:
+        return None, "could not read BPMN process-map XML"
+    lanes = {"process": {"id": "process", "title": "Process"}}
+    phases = {"process": {"id": "process", "title": "Process"}}
+    nodes: list[dict[str, object]] = []
+    imported_ids: set[str] = set()
+    tag_types = {"startEvent": "start", "endEvent": "end", "exclusiveGateway": "decision", "inclusiveGateway": "decision", "parallelGateway": "decision", "task": "process", "userTask": "process", "serviceTask": "process", "manualTask": "process", "scriptTask": "process", "businessRuleTask": "process"}
+    for index, element in enumerate(root.iter()):
+        tag = element.tag.rsplit("}", 1)[-1]
+        if tag not in tag_types:
+            continue
+        element_id = element.attrib.get("id") or f"node-{index}"
+        title = _clean_drawio_value(element.attrib.get("name")) or tag.replace("Task", " task").replace("Event", " event")
+        node_id = _slug(element_id)
+        imported_ids.add(element_id)
+        nodes.append({"id": node_id, "lane_id": "process", "phase_id": "process", "title": title, "node_type": tag_types[tag], "_source_x": float(index), "_source_y": 0.0})
+    if not nodes:
+        return None, "could not extract process-map steps from uploaded artifact"
+    connectors: list[dict[str, str | None]] = []
+    for index, element in enumerate(root.iter()):
+        tag = element.tag.rsplit("}", 1)[-1]
+        if tag != "sequenceFlow":
+            continue
+        source = element.attrib.get("sourceRef")
+        target = element.attrib.get("targetRef")
+        if source in imported_ids and target in imported_ids:
+            connectors.append({"id": _slug(element.attrib.get("id") or f"flow-{index}"), "source_node_id": _slug(source), "target_node_id": _slug(target), "label": _clean_drawio_value(element.attrib.get("name")) or None})
+    nodes = _normalise_import_layout(nodes, lanes, phases)
+    return _insert_imported_map(job_id, workspace_id, "Imported BPMN current-state map", list(lanes.values()), list(phases.values()), nodes, connectors, conn)
+
+
 def _convert_import_to_draft_map(job_id: str, workspace_id: str, filename: str, contents: bytes, conn: sqlite3.Connection) -> tuple[str | None, str | None]:
-    if Path(filename).suffix.lower() == ".drawio":
+    extension = Path(filename).suffix.lower()
+    if extension == ".drawio":
         return _convert_drawio_to_draft_map(job_id, workspace_id, contents, conn)
+    if extension in {".mmd", ".mermaid"}:
+        return _convert_mermaid_to_draft_map(job_id, workspace_id, contents, conn)
+    if extension == ".bpmn":
+        return _convert_bpmn_to_draft_map(job_id, workspace_id, contents, conn)
 
     text = contents.decode("utf-8", errors="ignore")
     lines = [line.strip() for line in text.splitlines() if line.strip()]
@@ -299,18 +399,21 @@ def _convert_import_to_draft_map(job_id: str, workspace_id: str, filename: str, 
     return _insert_imported_map(job_id, workspace_id, "AI-imported draft current-state map", list(lanes.values()), list(phases.values()), nodes, connectors, conn)
 
 
-def _insert_imported_map(job_id: str, workspace_id: str, title: str, lanes: list[dict], phases: list[dict], nodes: list[dict], connectors: list[dict], conn: sqlite3.Connection) -> tuple[str | None, str | None]:
+def _insert_map_row(
+    conn: sqlite3.Connection,
+    workspace_id: str,
+    title: str,
+    version_ref: str | None,
+    map_status: str,
+    source_version_id: str | None,
+    lanes: list[dict],
+    phases: list[dict],
+    nodes: list[dict],
+    connectors: list[dict],
+    comments: list[dict],
+) -> str:
     map_id = str(uuid4())
     timestamp = now_iso()
-    comments = [{
-        "id": f"cleanup-{job_id}",
-        "body": "AI-imported draft requires human cleanup before use; conversion may be incomplete or inaccurate.",
-        "node_id": None,
-        "version_ref": "ai-import-draft",
-        "author": "system",
-        "created_at": timestamp,
-        "resolved": False,
-    }]
     conn.execute(
         """
         INSERT INTO current_state_maps (
@@ -321,9 +424,9 @@ def _insert_imported_map(job_id: str, workspace_id: str, title: str, lanes: list
             map_id,
             workspace_id,
             title,
-            "ai-import-draft",
-            "draft",
-            None,
+            version_ref,
+            map_status,
+            source_version_id,
             _json_dump(lanes),
             _json_dump(phases),
             _json_dump(nodes),
@@ -333,6 +436,21 @@ def _insert_imported_map(job_id: str, workspace_id: str, title: str, lanes: list
             timestamp,
         ),
     )
+    return map_id
+
+
+def _insert_imported_map(job_id: str, workspace_id: str, title: str, lanes: list[dict], phases: list[dict], nodes: list[dict], connectors: list[dict], conn: sqlite3.Connection) -> tuple[str | None, str | None]:
+    timestamp = now_iso()
+    comments = [{
+        "id": f"cleanup-{job_id}",
+        "body": "AI-imported draft requires human cleanup before use; conversion may be incomplete or inaccurate.",
+        "node_id": None,
+        "version_ref": "ai-import-draft",
+        "author": "system",
+        "created_at": timestamp,
+        "resolved": False,
+    }]
+    map_id = _insert_map_row(conn, workspace_id, title, "ai-import-draft", "draft", None, lanes, phases, nodes, connectors, comments)
     return map_id, None
 
 
@@ -388,15 +506,17 @@ def upload_current_state_import(
     conn.execute(
         """
         INSERT INTO current_state_import_jobs (
-            id, workspace_id, filename_hash, filename_redacted, file_type, uploader, status,
+            id, workspace_id, filename_hash, filename_redacted, filename_display, dismissed_at, file_type, uploader, status,
             error_message, temporary_storage_path, source_deleted_at, source_retention_expires_at, result_map_id, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             job_id,
             actor.workspace.id,
             hashlib.sha256(filename.encode("utf-8")).hexdigest(),
             _redacted_filename(filename),
+            _display_filename(filename),
+            None,
             file_type,
             actor.user.user_id,
             "pending",
@@ -427,10 +547,28 @@ def list_current_state_imports(
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> list[CurrentStateImportJob]:
     rows = conn.execute(
-        "SELECT * FROM current_state_import_jobs WHERE workspace_id = ? ORDER BY created_at",
+        "SELECT * FROM current_state_import_jobs WHERE workspace_id = ? AND dismissed_at IS NULL ORDER BY created_at",
         (actor.workspace.id,),
     ).fetchall()
     return [_row_to_import_job(row) for row in rows]
+
+
+@import_router.post("/{job_id}/dismiss", response_model=CurrentStateImportJob)
+def dismiss_current_state_import(
+    job_id: str,
+    actor: WorkspaceActor = Depends(require_any_staff),
+    conn: sqlite3.Connection = Depends(get_connection),
+) -> CurrentStateImportJob:
+    row = _get_workspace_import_job(job_id, actor.workspace.id, conn)
+    if row["status"] != "failed":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="only failed imports can be dismissed")
+    timestamp = now_iso()
+    conn.execute(
+        "UPDATE current_state_import_jobs SET dismissed_at = ?, updated_at = ? WHERE id = ? AND workspace_id = ?",
+        (timestamp, timestamp, job_id, actor.workspace.id),
+    )
+    conn.commit()
+    return _row_to_import_job(_get_workspace_import_job(job_id, actor.workspace.id, conn))
 
 
 @import_router.post("/{job_id}/retry", response_model=CurrentStateImportJob)
@@ -442,7 +580,7 @@ def retry_current_state_import(
     _get_workspace_import_job(job_id, actor.workspace.id, conn)
     timestamp = now_iso()
     conn.execute(
-        "UPDATE current_state_import_jobs SET status = ?, error_message = NULL, updated_at = ? WHERE id = ? AND workspace_id = ?",
+        "UPDATE current_state_import_jobs SET status = ?, error_message = NULL, dismissed_at = NULL, updated_at = ? WHERE id = ? AND workspace_id = ?",
         ("pending", timestamp, job_id, actor.workspace.id),
     )
     conn.commit()
@@ -455,33 +593,21 @@ def create_current_state_map(
     actor: WorkspaceActor = Depends(require_current_state_editor),
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> CurrentStateMap:
-    map_id = str(uuid4())
-    timestamp = now_iso()
-    conn.execute(
-        """
-        INSERT INTO current_state_maps (
-            id, workspace_id, title, version_ref, status, source_version_id, lanes, phases, nodes, connectors, comments, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            map_id,
-            actor.workspace.id,
-            payload.title.strip(),
-            payload.version_ref,
-            payload.status,
-            payload.source_version_id,
-            _json_dump([lane.model_dump() for lane in payload.lanes]),
-            _json_dump([phase.model_dump() for phase in payload.phases]),
-            _json_dump([node.model_dump() for node in payload.nodes]),
-            _json_dump([connector.model_dump() for connector in payload.connectors]),
-            _json_dump([comment.model_dump() for comment in payload.comments]),
-            timestamp,
-            timestamp,
-        ),
+    map_id = _insert_map_row(
+        conn,
+        actor.workspace.id,
+        payload.title.strip(),
+        payload.version_ref,
+        "draft",
+        payload.source_version_id,
+        [lane.model_dump() for lane in payload.lanes],
+        [phase.model_dump() for phase in payload.phases],
+        [node.model_dump() for node in payload.nodes],
+        [connector.model_dump() for connector in payload.connectors],
+        [comment.model_dump() for comment in payload.comments],
     )
     conn.commit()
-    row = conn.execute("SELECT * FROM current_state_maps WHERE id = ?", (map_id,)).fetchone()
-    return _row_to_map(row)
+    return _row_to_map(_get_workspace_map(map_id, actor.workspace.id, conn))
 
 
 @router.get("", response_model=list[CurrentStateMap])
@@ -490,7 +616,7 @@ def list_current_state_maps(
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> list[CurrentStateMap]:
     rows = conn.execute(
-        "SELECT * FROM current_state_maps WHERE workspace_id = ? ORDER BY created_at",
+        "SELECT * FROM current_state_maps WHERE workspace_id = ? AND status != 'archived' ORDER BY created_at",
         (actor.workspace.id,),
     ).fetchall()
     return [_row_to_map(row) for row in rows]
@@ -513,31 +639,29 @@ def update_current_state_map(
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> CurrentStateMap:
     existing = _get_workspace_map(map_id, actor.workspace.id, conn)
-    if existing["status"] == "locked":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="locked current-state map versions cannot be edited")
-    version_id = str(uuid4())
-    timestamp = now_iso()
-    conn.execute(
-        """
-        INSERT INTO current_state_maps (
-            id, workspace_id, title, version_ref, status, source_version_id, lanes, phases, nodes, connectors, comments, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            version_id,
-            actor.workspace.id,
-            payload.title.strip(),
-            payload.version_ref,
-            payload.status,
-            map_id,
-            _json_dump([lane.model_dump() for lane in payload.lanes]),
-            _json_dump([phase.model_dump() for phase in payload.phases]),
-            _json_dump([node.model_dump() for node in payload.nodes]),
-            _json_dump([connector.model_dump() for connector in payload.connectors]),
-            _json_dump([comment.model_dump() for comment in payload.comments]),
-            timestamp,
-            timestamp,
-        ),
+    if existing["status"] == "archived":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="archived current-state map versions cannot be edited")
+    family_ids = _version_family_ids(map_id, actor.workspace.id, conn)
+    if existing["status"] == "approved":
+        placeholders = ",".join("?" for _ in family_ids)
+        active_draft = conn.execute(
+            f"SELECT id FROM current_state_maps WHERE workspace_id = ? AND id IN ({placeholders}) AND status = 'draft' LIMIT 1",
+            (actor.workspace.id, *family_ids),
+        ).fetchone()
+        if active_draft is not None:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="current-state version already has an active draft")
+    version_id = _insert_map_row(
+        conn,
+        actor.workspace.id,
+        payload.title.strip(),
+        payload.version_ref,
+        "draft",
+        map_id,
+        [lane.model_dump() for lane in payload.lanes],
+        [phase.model_dump() for phase in payload.phases],
+        [node.model_dump() for node in payload.nodes],
+        [connector.model_dump() for connector in payload.connectors],
+        [comment.model_dump() for comment in payload.comments],
     )
     conn.commit()
     return _row_to_map(_get_workspace_map(version_id, actor.workspace.id, conn))
@@ -551,6 +675,8 @@ def add_current_state_comment(
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> CurrentStateMap:
     existing = _row_to_map(_get_workspace_map(map_id, actor.workspace.id, conn))
+    if existing.status != "draft":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="only draft current-state maps can be commented on")
     if payload.node_id is not None and not any(node.id == payload.node_id for node in existing.nodes):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="comment node_id must reference an existing node")
     timestamp = now_iso()
@@ -578,10 +704,19 @@ def accept_current_state_map(
     actor: WorkspaceActor = Depends(require_current_state_approver),
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> CurrentStateMap:
-    _get_workspace_map(map_id, actor.workspace.id, conn)
+    existing = _get_workspace_map(map_id, actor.workspace.id, conn)
+    if existing["status"] == "archived":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="archived current-state map versions cannot be approved")
+    family_ids = _version_family_ids(map_id, actor.workspace.id, conn)
+    placeholders = ",".join("?" for _ in family_ids)
+    timestamp = now_iso()
+    conn.execute(
+        f"UPDATE current_state_maps SET status = 'archived', updated_at = ? WHERE workspace_id = ? AND id IN ({placeholders}) AND status = 'approved' AND id != ?",
+        (timestamp, actor.workspace.id, *family_ids, map_id),
+    )
     conn.execute(
         "UPDATE current_state_maps SET status = ?, updated_at = ? WHERE id = ? AND workspace_id = ?",
-        ("locked", now_iso(), map_id, actor.workspace.id),
+        ("approved", timestamp, map_id, actor.workspace.id),
     )
     conn.commit()
     return _row_to_map(_get_workspace_map(map_id, actor.workspace.id, conn))
@@ -609,13 +744,7 @@ def lock_current_state_map(
     actor: WorkspaceActor = Depends(require_current_state_approver),
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> CurrentStateMap:
-    _get_workspace_map(map_id, actor.workspace.id, conn)
-    conn.execute(
-        "UPDATE current_state_maps SET status = ?, updated_at = ? WHERE id = ? AND workspace_id = ?",
-        ("locked", now_iso(), map_id, actor.workspace.id),
-    )
-    conn.commit()
-    return _row_to_map(_get_workspace_map(map_id, actor.workspace.id, conn))
+    return accept_current_state_map(map_id, actor, conn)
 
 
 @router.post("/{map_id}/duplicate", response_model=CurrentStateMap, status_code=status.HTTP_201_CREATED)
@@ -625,29 +754,26 @@ def duplicate_current_state_map(
     conn: sqlite3.Connection = Depends(get_connection),
 ) -> CurrentStateMap:
     existing = _row_to_map(_get_workspace_map(map_id, actor.workspace.id, conn))
-    duplicate_id = str(uuid4())
-    timestamp = now_iso()
-    conn.execute(
-        """
-        INSERT INTO current_state_maps (
-            id, workspace_id, title, version_ref, status, source_version_id, lanes, phases, nodes, connectors, comments, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            duplicate_id,
-            actor.workspace.id,
-            f"{existing.title} (draft)",
-            existing.version_ref,
-            "draft",
-            existing.id,
-            _json_dump([lane.model_dump() for lane in existing.lanes]),
-            _json_dump([phase.model_dump() for phase in existing.phases]),
-            _json_dump([node.model_dump() for node in existing.nodes]),
-            _json_dump([connector.model_dump() for connector in existing.connectors]),
-            _json_dump([comment.model_dump() for comment in existing.comments]),
-            timestamp,
-            timestamp,
-        ),
+    family_ids = _version_family_ids(map_id, actor.workspace.id, conn)
+    placeholders = ",".join("?" for _ in family_ids)
+    active_draft = conn.execute(
+        f"SELECT id FROM current_state_maps WHERE workspace_id = ? AND id IN ({placeholders}) AND status = 'draft' LIMIT 1",
+        (actor.workspace.id, *family_ids),
+    ).fetchone()
+    if active_draft is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="current-state version already has an active draft")
+    duplicate_id = _insert_map_row(
+        conn,
+        actor.workspace.id,
+        f"{existing.title} (draft)",
+        existing.version_ref,
+        "draft",
+        existing.id,
+        [lane.model_dump() for lane in existing.lanes],
+        [phase.model_dump() for phase in existing.phases],
+        [node.model_dump() for node in existing.nodes],
+        [connector.model_dump() for connector in existing.connectors],
+        [comment.model_dump() for comment in existing.comments],
     )
     conn.commit()
     return _row_to_map(_get_workspace_map(duplicate_id, actor.workspace.id, conn))

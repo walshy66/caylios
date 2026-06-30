@@ -173,7 +173,7 @@ export type CurrentStateMap = {
   workspace_id: string;
   title: string;
   version_ref: string | null;
-  status: 'draft' | 'locked';
+  status: 'draft' | 'approved' | 'archived';
   source_version_id: string | null;
   lanes: CurrentStateLane[];
   phases: CurrentStatePhase[];
@@ -187,7 +187,7 @@ export type CurrentStateMap = {
 export type CurrentStateMapCreate = {
   title: string;
   version_ref?: string | null;
-  status?: 'draft' | 'locked';
+  status?: 'draft' | 'approved' | 'archived';
   source_version_id?: string | null;
   lanes?: CurrentStateLane[];
   phases?: CurrentStatePhase[];
@@ -203,6 +203,8 @@ export type CurrentStateImportJob = {
   workspace_id: string;
   filename_hash: string;
   filename_redacted: string;
+  filename_display: string | null;
+  dismissed_at: string | null;
   file_type: string;
   uploader: string;
   status: 'pending' | 'succeeded' | 'failed';
@@ -456,6 +458,10 @@ export async function uploadCurrentStateImport(file: File): Promise<CurrentState
 
 export function retryCurrentStateImport(id: string): Promise<CurrentStateImportJob> {
   return request<CurrentStateImportJob>(`/current-state-imports/${id}/retry`, { method: 'POST' });
+}
+
+export function dismissCurrentStateImport(id: string): Promise<CurrentStateImportJob> {
+  return request<CurrentStateImportJob>(`/current-state-imports/${id}/dismiss`, { method: 'POST' });
 }
 
 export async function submitIntakeForm(formData: FormData): Promise<DocumentUploadResult> {

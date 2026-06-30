@@ -337,7 +337,7 @@ class CurrentStateCommentCreate(BaseModel):
 class CurrentStateMapCreate(BaseModel):
     title: str = Field(min_length=1)
     version_ref: str | None = None
-    status: Literal["draft", "locked"] = "draft"
+    status: Literal["draft", "approved", "archived"] = "draft"
     source_version_id: str | None = None
     lanes: list[CurrentStateLane] = Field(default_factory=list)
     phases: list[CurrentStatePhase] = Field(default_factory=lambda: [CurrentStatePhase(id="process", title="Process")])
@@ -380,6 +380,8 @@ class CurrentStateImportJob(BaseModel):
     workspace_id: str
     filename_hash: str
     filename_redacted: str
+    filename_display: str | None = None
+    dismissed_at: str | None = None
     file_type: str
     uploader: str
     status: Literal["pending", "succeeded", "failed"]

@@ -26,6 +26,7 @@ import {
   listCurrentStateMapVersions,
   listCurrentStateMaps,
   listCurrentStateImports,
+  dismissCurrentStateImport,
   retryCurrentStateImport,
   updateCurrentStateMap,
   uploadCurrentStateImport,
@@ -214,7 +215,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
 
   function requestNavigate(path: string) {
     const activeMap = selectedMap;
-    if (hasUnsavedChanges && activeMap && activeMap.status !== 'locked') {
+    if (hasUnsavedChanges && activeMap && activeMap.status === 'draft') {
       setSaveTitle(activeMap.title);
       setPendingPath(path);
       return;
@@ -226,7 +227,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
     setSelectedMap(nextMap);
     setSaveTitle(nextMap.title);
     setHasUnsavedChanges(dirty);
-    setMaps((currentMaps) => currentMaps.map((map) => (map.id === nextMap.id ? nextMap : map)));
+    setMaps((currentMaps) => (currentMaps.some((map) => map.id === nextMap.id) ? currentMaps.map((map) => (map.id === nextMap.id ? nextMap : map)) : [...currentMaps, nextMap]));
   }
 
   async function saveMap(map: CurrentStateMap): Promise<CurrentStateMap> {
@@ -242,17 +243,18 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
       comments: map.comments,
     });
     replaceSelectedMap(saved, false);
+    if (saved.id !== map.id) navigateToMapPath(currentStateMapPath({ kind: 'detail', mapId: saved.id }));
     setVersions(await listCurrentStateMapVersions(saved.id));
     return saved;
   }
 
   async function handleSave() {
-    if (!selectedMap || selectedMap.status === 'locked') return;
+    if (!selectedMap || selectedMap.status !== 'draft') return;
     setError(null);
     try {
       await saveMap(selectedMap);
     } catch {
-      setError('Unable to save this process map version. Locked versions cannot be edited.');
+      setError('Unable to save this process map version. Only drafts can be edited.');
     }
   }
 
@@ -288,7 +290,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
   };
 
   const handleNodeDragStop: OnNodeDrag = (_event, node) => {
-    if (!selectedMap || selectedMap.status === 'locked') return;
+    if (!selectedMap || selectedMap.status !== 'draft') return;
     replaceSelectedMap(moveCurrentStateNode(selectedMap, node.id, node.position));
   };
 
@@ -296,9 +298,12 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
     if (!selectedMap) return;
     setError(null);
     try {
-      replaceSelectedMap(await acceptCurrentStateMap(selectedMap.id), false);
+      const approved = await acceptCurrentStateMap(selectedMap.id);
+      replaceSelectedMap(approved, false);
+      setMaps(await listCurrentStateMaps());
+      setVersions(await listCurrentStateMapVersions(approved.id));
     } catch {
-      setError('Unable to accept this process map version.');
+      setError('Unable to approve this process map version.');
     }
   }
 
@@ -349,6 +354,16 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
       setImportJobs((jobs) => jobs.map((job) => (job.id === retried.id ? retried : job)));
     } catch {
       setError('Unable to retry this conversion job.');
+    }
+  }
+
+  async function handleDismissImport(jobId: string) {
+    setError(null);
+    try {
+      await dismissCurrentStateImport(jobId);
+      setImportJobs((jobs) => jobs.filter((job) => job.id !== jobId));
+    } catch {
+      setError('Unable to dismiss this failed import.');
     }
   }
 
@@ -441,7 +456,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
       data: {
         title: lane.title,
         laneType: lane.lane_type ?? 'other',
-        locked: selectedMap.status === 'locked',
+        locked: selectedMap.status !== 'draft',
         onRename: (laneId, title) => replaceSelectedMap(renameCurrentStateLane(selectedMap, laneId, title)),
         onTypeChange: (laneId, laneType) => replaceSelectedMap(changeCurrentStateLaneType(selectedMap, laneId, laneType)),
       },
@@ -457,7 +472,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
       data: {
         title: node.title,
         nodeType: node.node_type,
-        locked: selectedMap.status === 'locked',
+        locked: selectedMap.status !== 'draft',
         onRename: (nodeId, title) => replaceSelectedMap(renameCurrentStateNode(selectedMap, nodeId, title)),
         onComment: (nodeId) => handleAddComment(nodeId),
       },
@@ -510,12 +525,17 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
         {importJobs.length === 0 ? <p className="muted">No conversion jobs yet.</p> : null}
         {importJobs.map((job) => (
           <article key={job.id} className={`import-job import-job-${job.status}`}>
-            <strong>{job.filename_redacted}</strong>
+            <strong>{job.filename_display ?? job.filename_redacted}</strong>
             <span>{job.file_type} · uploaded by {job.uploader}</span>
             <span>Status: {job.status}</span>
             {job.result_map_id ? <span>Draft map created — review and clean up before use.</span> : null}
             {job.error_message ? <span role="alert">{job.error_message}</span> : null}
-            {job.status === 'failed' ? <button type="button" onClick={() => handleRetryImport(job.id)}>Retry</button> : null}
+            {job.status === 'failed' ? (
+              <span className="import-job-actions">
+                <button type="button" onClick={() => handleRetryImport(job.id)}>Retry</button>
+                <button type="button" onClick={() => handleDismissImport(job.id)}>Dismiss</button>
+              </span>
+            ) : null}
           </article>
         ))}
       </section>
@@ -545,8 +565,8 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                         <span>{currentStateMapSummary(selectedMap)} · {currentStateMapVersionLabel(selectedMap)}</span>
                       </div>
                       <div className="process-map-floating-actions" aria-label="Process map actions">
-                        <button type="button" onClick={handleSave} disabled={selectedMap.status === 'locked'}>Save</button>
-                        <button type="button" onClick={handleAccept} disabled={selectedMap.status === 'locked'}>Accept</button>
+                        <button type="button" onClick={handleSave} disabled={selectedMap.status !== 'draft'}>Save</button>
+                        <button type="button" onClick={handleAccept} disabled={selectedMap.status !== 'draft'}>Approve</button>
                         <button type="button" onClick={handleDuplicateLockedVersion}>Duplicate</button>
                         <button type="button" onClick={handleExportPng}>PNG</button>
                         <button type="button" onClick={handleExportPdf}>PDF</button>
@@ -570,11 +590,11 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                     <div className="process-map-floating-panel process-map-floating-palette" aria-label="Process map shape palette">
                       <strong>Shapes</strong>
                       {CURRENT_STATE_NODE_TYPES.map((nodeType) => (
-                        <button key={nodeType.value} type="button" disabled={selectedMap.status === 'locked'} onClick={() => handleAddNode(nodeType.value)}>
+                        <button key={nodeType.value} type="button" disabled={selectedMap.status !== 'draft'} onClick={() => handleAddNode(nodeType.value)}>
                           {nodeType.label}
                         </button>
                       ))}
-                      <button type="button" disabled={selectedMap.status === 'locked'} onClick={handleAddLane}>Add visual lane</button>
+                      <button type="button" disabled={selectedMap.status !== 'draft'} onClick={handleAddLane}>Add visual lane</button>
                     </div>
                     <div className="process-map-floating-panel process-map-floating-comments" aria-label="Process map comments">
                       <div className="panel-heading-row">
@@ -606,7 +626,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                                 aria-label={`Connector label from ${source?.title ?? 'unknown'} to ${target?.title ?? 'unknown'}`}
                                 value={connector.label ?? ''}
                                 placeholder="Label"
-                                disabled={selectedMap.status === 'locked'}
+                                disabled={selectedMap.status !== 'draft'}
                                 onChange={(event) => replaceSelectedMap(renameCurrentStateConnector(selectedMap, connector.id, event.target.value))}
                               />
                             </label>
@@ -621,8 +641,8 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                         nodeTypes={PROCESS_FLOW_NODE_TYPES}
                         onConnect={handleConnect}
                         onNodeDragStop={handleNodeDragStop}
-                        nodesDraggable={selectedMap.status !== 'locked'}
-                        nodesConnectable={selectedMap.status !== 'locked'}
+                        nodesDraggable={selectedMap.status === 'draft'}
+                        nodesConnectable={selectedMap.status === 'draft'}
                         fitView
                       >
                         <Background />
