@@ -310,6 +310,24 @@ export function addCurrentStateConnector(
   };
 }
 
+export function removeCurrentStateNodes(map: CurrentStateMap, nodeIds: string[]): CurrentStateMap {
+  assertEditable(map);
+  const ids = new Set(nodeIds);
+  return {
+    ...map,
+    nodes: map.nodes.filter((node) => !ids.has(node.id)),
+    connectors: map.connectors.filter(
+      (connector) => !ids.has(connector.source_node_id) && !ids.has(connector.target_node_id),
+    ),
+  };
+}
+
+export function removeCurrentStateConnectors(map: CurrentStateMap, connectorIds: string[]): CurrentStateMap {
+  assertEditable(map);
+  const ids = new Set(connectorIds);
+  return { ...map, connectors: map.connectors.filter((connector) => !ids.has(connector.id)) };
+}
+
 export function renameCurrentStateConnector(map: CurrentStateMap, connectorId: string, label: string): CurrentStateMap {
   assertEditable(map);
   return {

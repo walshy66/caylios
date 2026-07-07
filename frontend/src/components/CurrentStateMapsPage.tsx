@@ -38,6 +38,8 @@ import {
   addCurrentStateConnector,
   addCurrentStateLane,
   addCurrentStateNode,
+  removeCurrentStateConnectors,
+  removeCurrentStateNodes,
   buildCurrentStateMapExportMetadata,
   changeCurrentStateLaneType,
   currentStateMapExportFilename,
@@ -206,6 +208,9 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
   const [workflowCommentBody, setWorkflowCommentBody] = useState('');
   const selectedRoute = parseCurrentStateMapRoute(currentPath);
   const exportFrameRef = useRef<HTMLDivElement | null>(null);
+  const flowInstanceRef = useRef<{ screenToFlowPosition: (point: { x: number; y: number }) => { x: number; y: number } } | null>(null);
+  const undoStackRef = useRef<CurrentStateMap[]>([]);
+  const redoStackRef = useRef<CurrentStateMap[]>([]);
 
   useEffect(() => {
     document.body.classList.toggle('process-map-open', selectedMap !== null);
@@ -214,7 +219,28 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
 
   useEffect(() => {
     setCommentsNodeId(null);
+    setEditingEdgeId(null);
+    undoStackRef.current = [];
+    redoStackRef.current = [];
   }, [selectedMap?.id]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const target = event.target as HTMLElement;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable) return;
+      const key = event.key.toLowerCase();
+      if (key === 'z' && !event.shiftKey) {
+        event.preventDefault();
+        applyHistory(undoStackRef.current, redoStackRef.current);
+      } else if (key === 'y' || (key === 'z' && event.shiftKey)) {
+        event.preventDefault();
+        applyHistory(redoStackRef.current, undoStackRef.current);
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
 
   useEffect(() => {
     const syncPath = () => setCurrentPath(window.location.pathname);
@@ -298,10 +324,37 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
   }
 
   function replaceSelectedMap(nextMap: CurrentStateMap, dirty = true) {
+    if (dirty && selectedMap && selectedMap.id === nextMap.id) {
+      undoStackRef.current.push(selectedMap);
+      if (undoStackRef.current.length > 50) undoStackRef.current.shift();
+      redoStackRef.current = [];
+    }
     setSelectedMap(nextMap);
     setSaveTitle(nextMap.title);
     setHasUnsavedChanges(dirty);
     setMaps((currentMaps) => (currentMaps.some((map) => map.id === nextMap.id) ? currentMaps.map((map) => (map.id === nextMap.id ? nextMap : map)) : [...currentMaps, nextMap]));
+  }
+
+  function applyHistory(fromStack: CurrentStateMap[], toStack: CurrentStateMap[]) {
+    if (!selectedMap || selectedMap.status !== 'draft') return;
+    const restored = fromStack.pop();
+    if (!restored || restored.id !== selectedMap.id) return;
+    toStack.push(selectedMap);
+    setSelectedMap(restored);
+    setSaveTitle(restored.title);
+    setHasUnsavedChanges(true);
+    setMaps((currentMaps) => currentMaps.map((map) => (map.id === restored.id ? restored : map)));
+  }
+
+  function handleDeleteSelection(nodes: Node[], edges: CanvasLabelEdgeType[]) {
+    if (!selectedMap || selectedMap.status !== 'draft') return;
+    let next = selectedMap;
+    const nodeIds = nodes.filter((node) => node.type === 'processShape').map((node) => node.id);
+    if (nodeIds.length > 0) next = removeCurrentStateNodes(next, nodeIds);
+    const connectorIds = new Set(next.connectors.map((connector) => connector.id));
+    const edgeIds = edges.map((edge) => edge.id).filter((edgeId) => connectorIds.has(edgeId));
+    if (edgeIds.length > 0) next = removeCurrentStateConnectors(next, edgeIds);
+    if (next !== selectedMap) replaceSelectedMap(next);
   }
 
   async function saveMap(map: CurrentStateMap): Promise<CurrentStateMap> {
@@ -348,9 +401,18 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
     }
   }
 
-  function handleAddNode(nodeType: CurrentStateNodeType) {
+  function handleAddNode(nodeType: CurrentStateNodeType, position?: { x: number; y: number }) {
     if (!selectedMap) return;
-    replaceSelectedMap(addCurrentStateNode(selectedMap, nodeType, null, null, CURRENT_STATE_NODE_TYPES.find((candidate) => candidate.value === nodeType)?.label ?? 'Process'));
+    replaceSelectedMap(
+      addCurrentStateNode(
+        selectedMap,
+        nodeType,
+        null,
+        null,
+        CURRENT_STATE_NODE_TYPES.find((candidate) => candidate.value === nodeType)?.label ?? 'Process',
+        position,
+      ),
+    );
   }
 
   function handleAddLane() {
@@ -688,7 +750,18 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                     <div className="process-map-floating-panel process-map-floating-palette" aria-label="Process map shape palette">
                       <strong>Shapes</strong>
                       {CURRENT_STATE_NODE_TYPES.map((nodeType) => (
-                        <button key={nodeType.value} type="button" disabled={selectedMap.status !== 'draft'} onClick={() => handleAddNode(nodeType.value)}>
+                        <button
+                          key={nodeType.value}
+                          type="button"
+                          disabled={selectedMap.status !== 'draft'}
+                          draggable={selectedMap.status === 'draft'}
+                          title="Click to add, or drag onto the canvas"
+                          onClick={() => handleAddNode(nodeType.value)}
+                          onDragStart={(event) => {
+                            event.dataTransfer.setData('application/sts-shape-kind', nodeType.value);
+                            event.dataTransfer.effectAllowed = 'move';
+                          }}
+                        >
                           {nodeType.label}
                         </button>
                       ))}
@@ -735,11 +808,29 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                         nodeTypes={PROCESS_FLOW_NODE_TYPES}
                         edgeTypes={PROCESS_FLOW_EDGE_TYPES}
                         connectionMode={ConnectionMode.Loose}
+                        onInit={(instance) => {
+                          flowInstanceRef.current = instance;
+                        }}
                         onConnect={handleConnect}
                         onNodeDragStop={handleNodeDragStop}
                         onEdgeDoubleClick={(_event, edge) => {
                           if (selectedMap.status === 'draft') setEditingEdgeId(edge.id);
                         }}
+                        onDelete={({ nodes, edges }) => handleDeleteSelection(nodes, edges)}
+                        deleteKeyCode={selectedMap.status === 'draft' ? ['Backspace', 'Delete'] : null}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          event.dataTransfer.dropEffect = 'move';
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          const kind = event.dataTransfer.getData('application/sts-shape-kind');
+                          if (!kind || !flowInstanceRef.current || selectedMap.status !== 'draft') return;
+                          const position = flowInstanceRef.current.screenToFlowPosition({ x: event.clientX, y: event.clientY });
+                          handleAddNode(kind as CurrentStateNodeType, position);
+                        }}
+                        snapToGrid
+                        snapGrid={[10, 10]}
                         nodesDraggable={selectedMap.status === 'draft'}
                         nodesConnectable={selectedMap.status === 'draft'}
                         fitView
