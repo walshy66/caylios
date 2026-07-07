@@ -1,18 +1,14 @@
 import { ReactNode, useEffect, useState } from 'react';
-import AgentSessionsDashboard from './components/AgentSessionsDashboard';
 import DashboardPage from './components/DashboardPage';
 import CurrentStateMapsPage from './components/CurrentStateMapsPage';
 import FormsPage from './components/FormsPage';
 import ReviewQueuePanel from './components/ReviewQueuePanel';
 import SettingsPage from './components/SettingsPage';
 import ClientsPage from './components/ClientsPage';
-import WorkflowCanvasPanel from './components/WorkflowCanvasPanel';
+import WorkflowsPage from './components/WorkflowsPage';
 import { AuthControls } from './auth';
 import { PortalRoute, parseRoute, routePath } from './dashboardModel';
 import './App.css';
-
-// Legacy coding-agent dashboard stays in the codebase but out of the product UI.
-const agentDashboardEnabled = import.meta.env.VITE_ENABLE_AGENT_DASHBOARD === 'true';
 
 type NavItem = { route: PortalRoute; label: string; icon: ReactNode };
 type NavSection = { title?: string; items: NavItem[] };
@@ -103,12 +99,6 @@ export default function App() {
     setRoute(parseRoute(path));
   }
 
-  // The canvas takes over the whole viewport; the engine's own sidebar logo
-  // navigates back to the STS dashboard once the user is at its home page.
-  if (route === 'workflows') {
-    return <WorkflowCanvasPanel fullScreen />;
-  }
-
   return (
     <div className="sts-layout">
       <aside className="sts-sidebar">
@@ -148,11 +138,11 @@ export default function App() {
       <main className="sts-main">
         {route === 'dashboard' ? <DashboardPage onNavigate={navigate} /> : null}
         {route === 'forms' ? <FormsPage /> : null}
+        {route === 'workflows' ? <WorkflowsPage /> : null}
         {route === 'review' ? <ReviewQueuePanel /> : null}
         {route === 'process-maps' ? <CurrentStateMapsPage onNavigate={navigateToPath} /> : null}
         {route === 'clients' ? <ClientsPage /> : null}
         {route === 'settings' ? <SettingsPage /> : null}
-        {agentDashboardEnabled ? <AgentSessionsDashboard /> : null}
       </main>
     </div>
   );

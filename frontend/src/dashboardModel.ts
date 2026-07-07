@@ -98,7 +98,7 @@ export function liveFormCount(forms: FormSummary[]): number {
 // No client backend yet — the Clients tile shows a placeholder count.
 export const DUMMY_CLIENT_COUNT = 18;
 
-// Workflow count is dummied until the canvas backend exposes a flow list to STS.
+// Workflow count is dummied until the backend exposes stored workflow definitions.
 export const DUMMY_WORKFLOW_COUNT = 3;
 
 /** Time-of-day greeting for the dashboard hero. */

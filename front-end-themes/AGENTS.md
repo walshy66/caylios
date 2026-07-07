@@ -11,7 +11,7 @@ Owns theme assets under `front-end-themes/`.
 ## Local Contracts
 
 - Keep branding aligned with SimpleTS white-label direction.
-- Do not introduce Activepieces branding into SimpleTS customer-facing assets.
+- Do not introduce third-party tool branding into SimpleTS customer-facing assets.
 - Avoid committing licensed or client-sensitive assets unless explicitly approved.
 
 ## Work Guidance

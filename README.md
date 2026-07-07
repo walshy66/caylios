@@ -1,6 +1,6 @@
 # SimpleTS
 
-SimpleTS is a white-label client portal and workflow orchestration platform built on Activepieces as the workflow engine.
+SimpleTS is a white-label client portal and workflow orchestration platform with a native, approval-gated workflow engine.
 
 It helps professional services businesses stop double-handling data across multiple applications. End-clients submit information once through a branded portal; subscriber staff review and approve it; SimpleTS then distributes the approved data into the business systems the subscriber already uses.
 
@@ -25,14 +25,14 @@ SimpleTS acts as the front door for client data intake and the pipe between inta
 
 ## Core modules
 
-1. **Workflow Canvas**  
-   Subscribers configure how data moves through their business using an embedded Activepieces-powered canvas. Activepieces should be invisible to users; the experience is branded as SimpleTS.
+1. **Workflows**  
+   Subscribers configure how data moves through their business as native SimpleTS workflow definitions: an intake trigger, the mandatory review/approval gate, and destination steps with field mappings. A visual workflow builder (React Flow, matching the Current State canvas) is the planned configuration surface.
 
 2. **Document Intake**  
    End-clients can upload digital documents such as invoices, PDFs, images, ATO notices, or supporting files. This is a core platform capability, but it is secondary to the first web-form intake slice.
 
 3. **Data Extraction**  
-   SimpleTS extracts, validates, normalises, and prepares structured data from intake sources. Initial work focuses on structured web-form submissions. Document extraction uses an STS Extract Activepieces piece backed by Claude API when that slice is implemented.
+   SimpleTS extracts, validates, normalises, and prepares structured data from intake sources. Initial work focuses on structured web-form submissions. Document extraction calls the Claude API directly from the backend extraction module.
 
 4. **Data Distribution**  
    SimpleTS pushes approved data into connected third-party applications such as HubSpot, Google Drive, PandaDoc, Xero, Microsoft SharePoint/OneDrive, MYOB, and future client-specific systems.
@@ -72,28 +72,20 @@ Planned platform foundations:
 
 - **Frontend:** React-based STS UI and branded client portal
 - **Backend:** FastAPI service layer for STS-specific APIs and orchestration boundaries
-- **Workflow engine:** Forked/self-hosted Activepieces embedded inside STS
+- **Workflow engine:** Native — STS workflow definitions, connector adapters, and the approval-gated push framework in the FastAPI backend
 - **Database:** Postgres for workspace configuration, workflow metadata, encrypted OAuth tokens, and minimal audit records
 - **Auth:** Clerk for subscriber staff, end-clients, and platform admins
 - **Hosting:** Fly.io, Sydney region, Docker-native deployment
 - **Domains:** wildcard subscriber subdomains such as `clientname.simplets.com.au`
-- **AI extraction:** Claude API through a custom STS Extract Activepieces piece
+- **AI extraction:** Claude API called directly from the backend extraction module
 
-## Activepieces role
+## Workflow engine
 
-Activepieces provides the workflow canvas, connector model, and execution foundation.
+SimpleTS owns workflow definition, visualization, and execution — there is no embedded third-party workflow engine. The approval gate, retention rules, and workspace isolation are enforced by the backend and are never delegated.
 
-SimpleTS-specific work should focus on:
-
-- Branded client portal and intake experiences
-- Workspace isolation and subdomain routing
-- Subscriber review and approval flows
-- Data validation and transformation rules
-- Custom STS extraction behavior
-- Connector configuration and per-workspace OAuth lifecycle
-- Audit, deletion, failure visibility, and operational controls
-
-Keep Activepieces customisations shallow where possible: branding, feature control, embedding, and custom pieces. Avoid deep structural changes unless there is a clear SimpleTS product requirement.
+- **Connector adapters** (`backend/app/connectors.py`) — direct API integrations per provider, using workspace-scoped encrypted OAuth tokens.
+- **Push framework** (`backend/app/destinations.py`) — pushes approved data to connected destinations with per-destination status, idempotent retry, and retain-until-resolved failure handling.
+- **Workflow definitions** (planned) — workspace-scoped configuration of trigger, approval gate, and destination steps with field mappings, edited through a native visual builder with AI-suggested drafts.
 
 ## Initial connector priorities
 
@@ -110,7 +102,6 @@ OAuth tokens must be stored encrypted per workspace, never exposed in API respon
 
 Included in the near-term direction:
 
-- Activepieces fork configured as the embedded workflow engine
 - Fly.io deployment baseline
 - Clerk authentication
 - Workspace isolation and branded subdomain routing
@@ -126,7 +117,7 @@ Planned but secondary:
 - Claude-backed document extraction
 - PandaDoc and Xero connector completion
 - More advanced workflow templates
-- Self-serve workflow-canvas refinement
+- Native visual workflow builder with AI-suggested workflow drafts
 
 Out of scope for v1:
 
@@ -143,7 +134,7 @@ Out of scope for v1:
 
 This repository should be treated as a clean build toward the new SimpleTS platform direction.
 
-Legacy references to the previous local AI coding-agent session dashboard are obsolete and should not guide new architecture or product decisions.
+The previous local AI coding-agent session dashboard has been removed from the codebase entirely and must not be reintroduced.
 
 ## Related planning docs
 
@@ -227,4 +218,4 @@ npm test
 
 ## Development notes
 
-Local setup, package structure, and run commands should be updated as the Activepieces fork is integrated and the clean build structure stabilises.
+Local setup, package structure, and run commands should be updated as the clean build structure stabilises.

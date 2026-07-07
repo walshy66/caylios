@@ -14,7 +14,6 @@ from app.schemas import (
     InvoiceUploadGate,
     Workspace,
     WorkspaceBrandingUpdate,
-    WorkspaceCanvasUpdate,
     WorkspaceCreate,
     WorkspaceUser,
     WorkspaceUserUpsert,
@@ -177,44 +176,6 @@ def update_branding(
         WHERE id = ?
         """,
         (payload.logo_url, payload.primary_color, now_iso(), actor.workspace.id),
-    )
-    conn.commit()
-    row = conn.execute("SELECT * FROM workspaces WHERE id = ?", (actor.workspace.id,)).fetchone()
-    return row_to_workspace(row)
-
-
-@router.get("/current/canvas")
-def workflow_canvas(
-    actor: WorkspaceActor = Depends(require_admin),
-    conn: sqlite3.Connection = Depends(get_connection),
-) -> dict[str, str]:
-    """Embed URL for the white-labeled workflow canvas (COA-284).
-
-    The canvas URL is only issued to authenticated workspace admins, and is
-    scoped to the workspace's own Activepieces project so subscribers only see
-    their workflows. STS_ACTIVEPIECES_URL points at the forked, branding-free
-    instance.
-    """
-    base_url = os.environ.get("STS_ACTIVEPIECES_URL", "").rstrip("/")
-    if not base_url:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="workflow canvas is not configured (STS_ACTIVEPIECES_URL)",
-        )
-    project_id = actor.workspace.activepieces_project_id
-    embed_url = f"{base_url}/projects/{project_id}/flows" if project_id else f"{base_url}/flows"
-    return {"embed_url": embed_url}
-
-
-@router.patch("/current/canvas", response_model=Workspace)
-def set_canvas_project(
-    payload: WorkspaceCanvasUpdate,
-    actor: WorkspaceActor = Depends(require_admin),
-    conn: sqlite3.Connection = Depends(get_connection),
-) -> Workspace:
-    conn.execute(
-        "UPDATE workspaces SET activepieces_project_id = ?, updated_at = ? WHERE id = ?",
-        (payload.activepieces_project_id, now_iso(), actor.workspace.id),
     )
     conn.commit()
     row = conn.execute("SELECT * FROM workspaces WHERE id = ?", (actor.workspace.id,)).fetchone()

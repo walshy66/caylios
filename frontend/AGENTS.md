@@ -2,7 +2,7 @@
 
 ## Purpose
 
-React/Vite SimpleTS user interfaces for branded intake, subscriber review/approval, dashboards, auth-aware views, and embedded workflow access.
+React/Vite SimpleTS user interfaces for branded intake, subscriber review/approval, dashboards, auth-aware views, and native workflow pages.
 
 ## Ownership
 

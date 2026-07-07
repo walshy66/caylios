@@ -8,30 +8,6 @@ export function setAuthHeadersProvider(provider: AuthHeadersProvider): void {
   authHeadersProvider = provider;
 }
 
-export type Session = {
-  id: string;
-  title: string;
-  repo_path: string | null;
-  harness: 'test' | 'codex' | 'pi';
-  prompt: string | null;
-  model: string | null;
-  status: 'created' | 'running' | 'stopped' | 'completed' | 'errored';
-  branch_name: string | null;
-  log_path: string | null;
-  output_tail: string | null;
-  error_message: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-export type SessionCreate = {
-  title: string;
-  repo_path?: string;
-  harness: 'test' | 'codex' | 'pi';
-  prompt?: string;
-  model?: string;
-};
-
 export type DocumentMetadata = {
   id: string;
   filename: string;
@@ -228,42 +204,6 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function listSessions(): Promise<Session[]> {
-  return request<Session[]>('/sessions');
-}
-
-export function getSession(id: string): Promise<Session> {
-  return request<Session>(`/sessions/${id}`);
-}
-
-export function createSession(payload: SessionCreate): Promise<Session> {
-  return request<Session>('/sessions', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-}
-
-export function startSession(id: string): Promise<Session> {
-  return request<Session>(`/sessions/${id}/start`, { method: 'POST' });
-}
-
-export function stopSession(id: string): Promise<Session> {
-  return request<Session>(`/sessions/${id}/stop`, { method: 'POST' });
-}
-
-export function resumeSession(id: string): Promise<Session> {
-  return request<Session>(`/sessions/${id}/resume`, { method: 'POST' });
-}
-
-export function restartSession(id: string): Promise<Session> {
-  return request<Session>(`/sessions/${id}/restart`, { method: 'POST' });
-}
-
-export async function getSessionLogs(id: string): Promise<string> {
-  const result = await request<{ session_id: string; logs: string }>(`/sessions/${id}/logs`);
-  return result.logs;
-}
-
 export async function uploadDocument(formData: FormData): Promise<DocumentUploadResult> {
   const authHeaders = await authHeadersProvider();
   const response = await fetch(`${API_BASE_URL}/documents/upload`, {
@@ -292,17 +232,12 @@ export async function deleteWorkflowRun(id: string): Promise<void> {
   }
 }
 
-export function getWorkflowCanvas(): Promise<{ embed_url: string }> {
-  return request<{ embed_url: string }>('/workspaces/current/canvas');
-}
-
 export type Workspace = {
   id: string;
   name: string;
   subdomain: string | null;
   branding_logo_url: string | null;
   branding_primary_color: string | null;
-  activepieces_project_id: string | null;
   created_at: string;
   updated_at: string;
 };

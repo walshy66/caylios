@@ -16,52 +16,12 @@ def init_db() -> None:
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
             """
-            CREATE TABLE IF NOT EXISTS sessions (
-                id TEXT PRIMARY KEY,
-                title TEXT NOT NULL,
-                repo_path TEXT,
-                harness TEXT NOT NULL CHECK (harness IN ('test', 'codex', 'pi')),
-                prompt TEXT,
-                model TEXT,
-                status TEXT NOT NULL CHECK (status IN ('created', 'running', 'stopped', 'completed', 'errored')),
-                branch_name TEXT,
-                log_path TEXT,
-                output_tail TEXT,
-                error_message TEXT,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
-            )
-            """
-        )
-        existing_columns = {column[1] for column in conn.execute("PRAGMA table_info(sessions)").fetchall()}
-        if "model" not in existing_columns:
-            conn.execute("ALTER TABLE sessions ADD COLUMN model TEXT")
-        if "output_tail" not in existing_columns:
-            conn.execute("ALTER TABLE sessions ADD COLUMN output_tail TEXT")
-        if "error_message" not in existing_columns:
-            conn.execute("ALTER TABLE sessions ADD COLUMN error_message TEXT")
-
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS activity_events (
-                id TEXT PRIMARY KEY,
-                session_id TEXT NOT NULL,
-                tag TEXT NOT NULL CHECK (tag IN ('comment', 'note', 'attachment', 'handoff', 'status', 'prompt', 'branch')),
-                body TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                FOREIGN KEY (session_id) REFERENCES sessions(id)
-            )
-            """
-        )
-        conn.execute(
-            """
             CREATE TABLE IF NOT EXISTS workspaces (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 subdomain TEXT,
                 branding_logo_url TEXT,
                 branding_primary_color TEXT,
-                activepieces_project_id TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -74,8 +34,6 @@ def init_db() -> None:
             conn.execute("ALTER TABLE workspaces ADD COLUMN branding_logo_url TEXT")
         if "branding_primary_color" not in workspace_columns:
             conn.execute("ALTER TABLE workspaces ADD COLUMN branding_primary_color TEXT")
-        if "activepieces_project_id" not in workspace_columns:
-            conn.execute("ALTER TABLE workspaces ADD COLUMN activepieces_project_id TEXT")
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_workspaces_subdomain ON workspaces(subdomain)")
         conn.execute(
             """

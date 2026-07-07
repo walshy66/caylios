@@ -60,19 +60,21 @@ No data is stored in STS after completion. STS is a pipe, not a database.
 
 ### Hosting
 - **Platform:** Fly.io (Docker-native PaaS, Sydney region)
-- **Why Fly.io:** Native MCP server (FlyMCP) connects directly to Claude Code — infrastructure managed via natural language rather than dashboard UI. Sydney region serves Australian clients with low latency. Docker-native is a strong fit for Activepieces.
+- **Why Fly.io:** Native MCP server (FlyMCP) connects directly to Claude Code — infrastructure managed via natural language rather than dashboard UI. Sydney region serves Australian clients with low latency.
 - **Subdomains:** Wildcard DNS `*.simplets.com.au` with wildcard SSL via Let's Encrypt. One subdomain provisioned per subscriber at onboarding.
-- **Services:** FastAPI backend, React frontend, Postgres (Fly managed), Activepieces (self-hosted, forked)
+- **Services:** FastAPI backend, React frontend, Postgres (Fly managed)
 - **Setup:** `fly mcp launch` connects Fly.io to Claude Code. Infrastructure managed via `flyctl` CLI and MCP rather than dashboard.
 
 ### Auth
 - **Clerk** handles all authentication — subscriber admins, subscriber staff, and end-clients. Nothing custom built.
 
 ### Workflow Engine
-- **Activepieces** (MIT licensed, forked) embedded invisibly inside the STS UI. Clients see STS branding only — Activepieces is never exposed. The fork allows branding customisation and feature control. Upstream changes merged manually as needed — keep customisations shallow (theming, feature flags) to keep merging clean.
+- **Native STS workflow engine** — workflow definitions, connector adapters, and the approval-gated push framework live in the FastAPI backend. No embedded third-party engine.
+- **Decision history:** the original plan embedded a forked Activepieces instance as the canvas/engine. Dropped (July 2026) because the actual pipe (OAuth, adapters, push framework) was already native; the approval gate, retention, and workspace isolation invariants must stay inside the STS backend boundary; and the AP features needed (multi-project embedding, white-labeling) are enterprise-licensed, making a "shallow MIT fork" unworkable.
+- **Canvas:** a native visual workflow builder (React Flow, same toolkit as the Current State maps canvas) replaces the embedded AP canvas, with AI-suggested workflow drafts planned on top of connector capability manifests and approved Current State maps.
 
 ### AI Extraction
-- **Claude API** (claude-sonnet-4-6 or equivalent) implemented as a custom Activepieces piece called "STS Extract". Takes a file (PDF or image), returns structured JSON. Sits in the workflow canvas alongside connector pieces. End-user waits during extraction (~5–15s with loading state) — no background job queue needed.
+- **Claude API** (claude-sonnet-4-6 or equivalent) called directly from the backend extraction module. Takes a file (PDF or image), returns structured JSON. End-user waits during extraction (~5–15s with loading state) — no background job queue needed.
 
 ### Data Policy
 - **Zero retention after completion.** Uploaded files and extracted data are deleted after the subscriber approves and STS pushes to destinations.
@@ -94,7 +96,7 @@ No data is stored in STS after completion. STS is a pipe, not a database.
 - Platform-level admin role for STS to manage all workspaces.
 
 ### Connector Framework
-- Activepieces piece architecture used as the connector standard. Each integration is a piece. Custom pieces built for integrations not in Activepieces' library.
+- STS adapter architecture is the connector standard: each integration is a workspace-scoped adapter (direct API + OAuth) registered with the push framework, declaring its provider, scopes, actions, and field schema.
 - Future connectors added without rebuilding the platform.
 
 ---
@@ -142,11 +144,10 @@ No data is stored in STS after completion. STS is a pipe, not a database.
 ### First milestone (proof of life)
 Before building the canvas, branding, or multi-tenant infrastructure — validate the core pipe works:
 
-1. Activepieces running locally (unfork, just running)
-2. Hardcoded test workflow: static JSON → HubSpot sandbox → contact created
-3. Replace static JSON with Claude extraction from a test intake form PDF
-4. Add a minimal STS approval screen before the push
-5. Wire Clerk auth around it
+1. Hardcoded test workflow: static JSON → HubSpot sandbox → contact created
+2. Replace static JSON with Claude extraction from a test intake form PDF
+3. Add a minimal STS approval screen before the push
+4. Wire Clerk auth around it
 
 If this works, everything else is product on top of a proven pipe.
 
@@ -166,7 +167,7 @@ If this works, everything else is product on top of a proven pipe.
 ### Cost estimate
 | Line item | Month 1 | Month 12 |
 |---|---|---|
-| Fly.io (API + DB + Activepieces + frontend, Sydney) | ~$20 | ~$55 |
+| Fly.io (API + DB + frontend, Sydney) | ~$15 | ~$40 |
 | Claude API (~$0.005/extraction) | ~$5 | ~$60 |
 | Temporary file storage (S3) | ~$1 | ~$5 |
 | Clerk (auth) | Free–$25 | ~$50 |

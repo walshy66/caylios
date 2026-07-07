@@ -1,12 +1,11 @@
 # Deploying SimpleTS to Fly.io (COA-272)
 
-Three apps, all in `syd`:
+Two apps, both in `syd`:
 
 | App | Source | Config |
 |---|---|---|
 | `sts-api` | `backend/` | `backend/fly.toml` |
 | `sts-web` | `frontend/` | `frontend/fly.toml` |
-| `sts-workflows` | Activepieces fork (`../activepieces`) | `fly.toml` in the fork |
 
 Prerequisites (COA-270, HITL): Fly.io account, `flyctl` installed and authenticated,
 `simplets.com.au` registered. Optional: `fly mcp launch` to manage infra from Claude Code.
@@ -26,8 +25,7 @@ fly secrets set \
   STS_HUBSPOT_CLIENT_ID=... STS_HUBSPOT_CLIENT_SECRET=... \
   STS_GOOGLE_DRIVE_CLIENT_ID=... STS_GOOGLE_DRIVE_CLIENT_SECRET=... \
   STS_PANDADOC_CLIENT_ID=... STS_PANDADOC_CLIENT_SECRET=... \
-  STS_XERO_CLIENT_ID=... STS_XERO_CLIENT_SECRET=... \
-  STS_ACTIVEPIECES_URL=https://sts-workflows.fly.dev
+  STS_XERO_CLIENT_ID=... STS_XERO_CLIENT_SECRET=...
 fly deploy
 ```
 
@@ -37,25 +35,9 @@ Health check: `GET /health` (configured in fly.toml).
 > single Sydney machine — the schema is Postgres-compatible and the constitution's
 > Postgres target applies from the multi-machine milestone. Migrating means
 > provisioning `fly postgres create`, attaching it, and porting `app/db.py` to a
-> Postgres driver. Activepieces gets Postgres from day one (it requires it).
+> Postgres driver.
 
-## 2. Activepieces fork (`sts-workflows`)
-
-```sh
-cd ../activepieces
-fly launch --no-deploy --copy-config --name sts-workflows --region syd
-fly postgres create --name sts-workflows-db --region syd
-fly postgres attach sts-workflows-db --app sts-workflows
-fly redis create   # Upstash; note the URL
-fly secrets set \
-  AP_ENCRYPTION_KEY=$(openssl rand -hex 16) \
-  AP_JWT_SECRET=$(openssl rand -hex 32) \
-  AP_REDIS_URL=<from fly redis create> \
-  AP_FRONTEND_URL=https://sts-workflows.fly.dev
-fly deploy
-```
-
-## 3. Frontend (`sts-web`)
+## 2. Frontend (`sts-web`)
 
 ```sh
 cd ../simplets/frontend
@@ -63,7 +45,7 @@ fly launch --no-deploy --copy-config --name sts-web --region syd
 fly deploy --build-arg VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
 ```
 
-## 4. Wildcard domain + SSL
+## 3. Wildcard domain + SSL
 
 ```sh
 fly certs add "*.simplets.com.au" --app sts-web
@@ -86,12 +68,6 @@ workspace's subdomain works as soon as the row exists — no per-subscriber DNS.
 Point the frontend at the deployed API by setting the API base URL for the
 production build (currently `http://localhost:8000` in `src/api.ts` — switch to
 `https://api.simplets.com.au` at deploy time).
-
-## 5. Private networking
-
-Services reach each other over Fly's private 6PN network
-(`sts-api.internal`, `sts-workflows.internal`) — keep the canvas URL public-facing
-(`STS_ACTIVEPIECES_URL`) because the browser iframe loads it directly.
 
 ## Smoke checks after deploy
 

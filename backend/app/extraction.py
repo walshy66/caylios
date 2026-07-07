@@ -86,9 +86,9 @@ class DemoExtractionProvider:
 
 FieldDefinition = dict[str, Any]
 
-# Field definitions per document intent. The reviewer-facing flagging contract is
-# identical to the STS Extract Activepieces piece: missing or low-confidence
-# values are flagged explicitly, never silently passed through.
+# Field definitions per document intent. The reviewer-facing flagging contract:
+# missing or low-confidence values are flagged explicitly, never silently
+# passed through.
 INTENT_FIELD_DEFINITIONS: dict[str, list[FieldDefinition]] = {
     "client_intake": [
         {"name": "full_name", "description": "Client full legal name", "type": "string", "required": True},

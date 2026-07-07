@@ -1,4 +1,4 @@
-# SimpleTS Constitution (v0.1.0)
+# SimpleTS Constitution (v0.2.0)
 
 ## Purpose, Users & Scope
 
@@ -26,7 +26,7 @@ This repository governs the SimpleTS operational platform, including:
 - Branded subscriber portals on workspace subdomains.
 - Structured web-form data intake.
 - Subscriber review and approval flows.
-- Workflow orchestration using embedded Activepieces.
+- Native workflow definition and execution (approval-gated distribution).
 - Third-party connector configuration and data distribution.
 - OAuth token lifecycle management.
 - Workspace isolation and role-based access control.
@@ -115,23 +115,15 @@ Simple Technology Solutions branding is the authoritative default for platform-o
 
 ---
 
-### VII. Activepieces Is the Workflow Engine Boundary
+### VII. SimpleTS Owns the Workflow Engine
 
-Activepieces provides the workflow canvas, connector model, and execution foundation.
+Workflow definition, visualization, and execution are native SimpleTS capabilities. No third-party workflow engine (embedded, forked, or hosted) may sit between approval and distribution, because the approval gate, retention rules, and workspace isolation are enforced by the SimpleTS backend and MUST NOT be delegated.
 
-SimpleTS MUST NOT rebuild workflow-engine capabilities that Activepieces already provides well unless an explicit product requirement justifies it.
-
-Activepieces customisations SHOULD remain shallow:
-
-- Branding removal/replacement.
-- STS embedding and navigation integration.
-- Feature visibility/control.
-- Workspace scoping integration.
-- Custom STS pieces and connectors.
-
-Deep fork changes MUST be documented with rationale, risk, and upstream-merge impact.
-
-Activepieces branding MUST NOT be visible to subscribers or end-clients in the STS product experience.
+- A workflow definition is workspace-scoped configuration: a trigger (intake source), the mandatory human approval gate, and destination steps with field mappings.
+- The approval gate is structural — workflow definitions MUST NOT be able to express a path from intake to destination that bypasses review.
+- Connectors are first-class STS adapters: direct API integrations owned in this repo, each declaring its provider, OAuth scopes, actions, and field schema.
+- Execution is the STS push framework: per-destination status, safe retry, and retain-until-resolved failure handling.
+- Workflow-engine scope MUST stay minimal: no general-purpose DAG engine, scheduler, or queue infrastructure unless an explicit product requirement justifies it.
 
 ---
 
@@ -209,12 +201,12 @@ The current platform direction is:
 
 - **Frontend:** React-based STS UI and branded client portal.
 - **Backend:** FastAPI service layer for STS-specific APIs and orchestration boundaries.
-- **Workflow engine:** forked/self-hosted Activepieces embedded inside STS.
+- **Workflow engine:** native — STS workflow definitions, connector adapters, and the approval-gated push framework in the FastAPI backend.
 - **Database:** Postgres for workspace configuration, workflow metadata, encrypted OAuth tokens, execution metadata, and minimal audit records.
 - **Auth:** Clerk for subscriber staff, end-clients, and platform admins.
 - **Hosting:** Fly.io, Sydney region, Docker-native deployment.
 - **Domains:** wildcard subscriber subdomains such as `clientname.simplets.com.au`.
-- **AI extraction:** Claude API through a custom STS Extract Activepieces piece.
+- **AI extraction:** Claude API called directly from the backend extraction module.
 
 Major deviations from this stack MUST be documented before implementation.
 
@@ -235,7 +227,7 @@ Additional connectors are allowed when they support a real subscriber workflow a
 
 ## UI & Product Experience Requirements
 
-- Subscribers and end-clients MUST experience the product as SimpleTS, not Activepieces.
+- Subscribers and end-clients MUST experience the product as SimpleTS; third-party tooling MUST NOT be visible in the product experience.
 - Subscriber portals MUST support workspace branding.
 - Review screens MUST make flagged, missing, low-confidence, or failed fields obvious.
 - Approval actions MUST be explicit and hard to trigger accidentally.

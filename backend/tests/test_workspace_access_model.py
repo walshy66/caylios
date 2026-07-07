@@ -35,7 +35,6 @@ def test_workspace_tables_define_users_roles_and_feature_flags(monkeypatch, tmp_
             "subdomain",
             "branding_logo_url",
             "branding_primary_color",
-            "activepieces_project_id",
             "created_at",
             "updated_at",
         ]
@@ -126,30 +125,3 @@ def test_workflow_automation_feature_flag_can_be_disabled_per_workspace(monkeypa
     assert flag.enabled is False
 
 
-def test_workspace_schema_does_not_mutate_existing_sessions_schema(monkeypatch, tmp_path):
-    use_temp_db(monkeypatch, tmp_path)
-
-    db.init_db()
-
-    conn = sqlite3.connect(db.DB_PATH)
-    conn.row_factory = sqlite3.Row
-    try:
-        session_columns = table_columns(conn, "sessions")
-    finally:
-        conn.close()
-
-    assert session_columns == [
-        "id",
-        "title",
-        "repo_path",
-        "harness",
-        "prompt",
-        "model",
-        "status",
-        "branch_name",
-        "log_path",
-        "output_tail",
-        "error_message",
-        "created_at",
-        "updated_at",
-    ]

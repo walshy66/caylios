@@ -39,7 +39,7 @@ Document upload, AI extraction, broader connectors, and advanced workflow templa
 
 - Frontend: React, TypeScript, Vite, Clerk
 - Backend: FastAPI, Pydantic, pytest
-- Workflow engine: embedded/forked Activepieces
+- Workflow engine: native (STS workflow definitions, connector adapters, approval-gated push framework in the FastAPI backend)
 - Target DB: Postgres
 - Target hosting: Fly.io, Sydney region
 - Auth: Clerk
@@ -91,7 +91,6 @@ Bug fixes affecting auth, data safety, deletion, connector execution, tenant iso
 ## Coding rules
 
 - Prefer small, releasable vertical slices.
-- Keep Activepieces customisations shallow unless there is an explicit product requirement.
 - Do not add silent fallbacks for authorization, approval, deletion, connector execution, or tenant scoping.
 - Return explicit structured errors for invariant failures.
 - Use `401` for unauthenticated requests.
@@ -207,6 +206,7 @@ When the user requests a durable behavior change, record it here or in the relev
 - Current State V1 should prioritise simplicity: all workspace staff can create/import/edit/approve Current State drafts until configurable approval permissions are introduced; submit-only/non-staff users remain blocked.
 - Current State process-map import replaces invoice-style ingestion for workflow mapping: import is available only from Current State, creates a new draft map, uses temporary source files, displays sanitised filenames for operator usability, and starts with supported process-map file types under 25 MB.
 - Current State maps use Draft/Approved/Archived lifecycle semantics: drafts are editable, approved maps are immutable, approving a newer draft archives the previous approved version, and archived versions remain in version history rather than the active list.
+- Activepieces is removed (July 2026): the workflow engine is native SimpleTS (workflow definitions, connector adapters, approval-gated push framework). Do not reintroduce embedded/forked third-party workflow engines; the planned visual workflow builder is native (React Flow) with AI-suggested workflow drafts.
 
 ## Child DOX Index
 
