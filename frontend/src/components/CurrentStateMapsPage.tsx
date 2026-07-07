@@ -61,12 +61,17 @@ type Props = {
 const PROCESS_MAP_IMPORT_ACCEPT = 'application/pdf,image/png,image/jpeg,image/svg+xml,.drawio,.xml,.vsdx,.bpmn,.mmd,.mermaid,.puml,.plantuml,.dot,.graphml';
 const PROCESS_MAP_IMPORT_MAX_BYTES = 25 * 1024 * 1024;
 
+type NodeCommentSummary = { id: string; body: string; author: string | null; resolved: boolean };
+
 type ProcessFlowNodeData = {
   title: string;
   nodeType: string;
   locked: boolean;
+  comments: NodeCommentSummary[];
+  commentsOpen: boolean;
   onRename: (nodeId: string, title: string) => void;
-  onComment: (nodeId: string) => void;
+  onToggleComments: (nodeId: string) => void;
+  onAddComment: (nodeId: string, body: string) => void;
 };
 
 type VisualLaneNodeData = {
@@ -77,6 +82,48 @@ type VisualLaneNodeData = {
   onTypeChange: (laneId: string, laneType: typeof CURRENT_STATE_LANE_TYPES[number]['value']) => void;
 };
 
+function NodeCommentsPopover({ nodeId, title, comments, onAddComment, onClose }: {
+  nodeId: string;
+  title: string;
+  comments: NodeCommentSummary[];
+  onAddComment: (nodeId: string, body: string) => void;
+  onClose: () => void;
+}) {
+  const [body, setBody] = useState('');
+  return (
+    <aside className="canvas-comment-popover nodrag nowheel" aria-label={`Comments for ${title}`}>
+      <div className="canvas-comment-popover-header">
+        <strong>Comments</strong>
+        <button type="button" onClick={onClose} aria-label="Close comments">×</button>
+      </div>
+      {comments.length === 0 ? <p className="muted">No comments yet.</p> : null}
+      {comments.map((comment) => (
+        <article key={comment.id} className="canvas-comment">
+          <p>{comment.body}</p>
+          <small>{comment.author ?? 'Unknown author'} · {comment.resolved ? 'Resolved' : 'Open'}</small>
+        </article>
+      ))}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!body.trim()) return;
+          onAddComment(nodeId, body.trim());
+          setBody('');
+        }}
+      >
+        <textarea
+          aria-label={`Add a comment for ${title}`}
+          value={body}
+          rows={2}
+          placeholder="Add a comment"
+          onChange={(event) => setBody(event.target.value)}
+        />
+        <button type="submit" disabled={!body.trim()}>Add</button>
+      </form>
+    </aside>
+  );
+}
+
 function ProcessFlowNode({ id, data }: NodeProps<Node<ProcessFlowNodeData>>) {
   return (
     <CanvasShape
@@ -86,16 +133,32 @@ function ProcessFlowNode({ id, data }: NodeProps<Node<ProcessFlowNodeData>>) {
       locked={data.locked}
       onRename={data.onRename}
       corner={
-        <button
-          type="button"
-          className="canvas-shape-corner"
-          aria-label={`Comment on ${data.title}`}
-          onClick={() => data.onComment(id)}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M4 5h16v11H10l-6 5z" />
-          </svg>
-        </button>
+        <>
+          <button
+            type="button"
+            className={`canvas-shape-corner ${data.comments.length > 0 || data.commentsOpen ? 'canvas-shape-corner-active' : ''}`}
+            aria-label={`Comments on ${data.title} (${data.comments.length})`}
+            aria-expanded={data.commentsOpen}
+            onClick={() => data.onToggleComments(id)}
+          >
+            {data.comments.length > 0 ? (
+              <span className="canvas-comment-count">{data.comments.length}</span>
+            ) : (
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 5h16v11H10l-6 5z" />
+              </svg>
+            )}
+          </button>
+          {data.commentsOpen ? (
+            <NodeCommentsPopover
+              nodeId={id}
+              title={data.title}
+              comments={data.comments}
+              onAddComment={data.onAddComment}
+              onClose={() => data.onToggleComments(id)}
+            />
+          ) : null}
+        </>
       }
     />
   );
@@ -137,6 +200,8 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [saveTitle, setSaveTitle] = useState('');
+  const [commentsNodeId, setCommentsNodeId] = useState<string | null>(null);
+  const [workflowCommentBody, setWorkflowCommentBody] = useState('');
   const selectedRoute = parseCurrentStateMapRoute(currentPath);
   const exportFrameRef = useRef<HTMLDivElement | null>(null);
 
@@ -144,6 +209,10 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
     document.body.classList.toggle('process-map-open', selectedMap !== null);
     return () => document.body.classList.remove('process-map-open');
   }, [selectedMap]);
+
+  useEffect(() => {
+    setCommentsNodeId(null);
+  }, [selectedMap?.id]);
 
   useEffect(() => {
     const syncPath = () => setCurrentPath(window.location.pathname);
@@ -310,10 +379,8 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
     }
   }
 
-  async function handleAddComment(nodeId: string | null) {
-    if (!selectedMap) return;
-    const body = window.prompt(nodeId ? 'Add a comment for this shape' : 'Add a workflow comment');
-    if (!body?.trim()) return;
+  async function handleAddComment(nodeId: string | null, body: string) {
+    if (!selectedMap || !body.trim()) return;
     setError(null);
     try {
       replaceSelectedMap(await addCurrentStateMapComment(selectedMap.id, { node_id: nodeId, body: body.trim(), resolved: false }), false);
@@ -476,12 +543,17 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
         title: node.title,
         nodeType: node.node_type,
         locked: selectedMap.status !== 'draft',
+        comments: selectedMap.comments
+          .filter((comment) => comment.node_id === node.id)
+          .map((comment) => ({ id: comment.id, body: comment.body, author: comment.author ?? null, resolved: comment.resolved })),
+        commentsOpen: commentsNodeId === node.id,
         onRename: (nodeId, title) => replaceSelectedMap(renameCurrentStateNode(selectedMap, nodeId, title)),
-        onComment: (nodeId) => handleAddComment(nodeId),
+        onToggleComments: (nodeId) => setCommentsNodeId((current) => (current === nodeId ? null : nodeId)),
+        onAddComment: (nodeId, body) => handleAddComment(nodeId, body),
       },
     }));
     return [...laneNodes, ...processNodes];
-  }, [selectedMap]);
+  }, [selectedMap, commentsNodeId]);
   const flowEdges = useMemo<Edge[]>(() => {
     if (!selectedMap) return [];
     return selectedMap.connectors.map((connector) => ({
@@ -602,8 +674,25 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                     <div className="process-map-floating-panel process-map-floating-comments" aria-label="Process map comments">
                       <div className="panel-heading-row">
                         <h4>Comments</h4>
-                        <button type="button" onClick={() => handleAddComment(null)}>Add</button>
                       </div>
+                      <form
+                        className="canvas-workflow-comment-form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          if (!workflowCommentBody.trim()) return;
+                          handleAddComment(null, workflowCommentBody.trim());
+                          setWorkflowCommentBody('');
+                        }}
+                      >
+                        <textarea
+                          aria-label="Add a workflow comment"
+                          value={workflowCommentBody}
+                          rows={2}
+                          placeholder="Add a workflow comment"
+                          onChange={(event) => setWorkflowCommentBody(event.target.value)}
+                        />
+                        <button type="submit" disabled={!workflowCommentBody.trim()}>Add</button>
+                      </form>
                       {selectedMap.comments.length === 0 ? <p className="muted">No comments yet.</p> : null}
                       {selectedMap.comments.map((comment) => {
                         const node = selectedMap.nodes.find((candidate) => candidate.id === comment.node_id);
