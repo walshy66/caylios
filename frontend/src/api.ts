@@ -125,6 +125,8 @@ export type CurrentStateConnector = {
   source_node_id: string;
   target_node_id: string;
   label?: string;
+  source_handle?: string | null;
+  target_handle?: string | null;
 };
 
 export type CurrentStateComment = {

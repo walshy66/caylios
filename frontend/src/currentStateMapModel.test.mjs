@@ -156,6 +156,11 @@ const connected = addCurrentStateConnector(
 assert.equal(connected.connectors.at(-1).source_node_id, 'n1');
 assert.equal(connected.connectors.at(-1).target_node_id, 'n2');
 assert.equal(connected.connectors.at(-1).label, 'Yes');
+assert.equal(connected.connectors.at(-1).source_handle, null);
+assert.equal(connected.connectors.at(-1).target_handle, null);
+const connectedWithHandles = addCurrentStateConnector(withDecision, 'n1', 'n2', '', 'bottom', 'top');
+assert.equal(connectedWithHandles.connectors.at(-1).source_handle, 'bottom');
+assert.equal(connectedWithHandles.connectors.at(-1).target_handle, 'top');
 assert.equal(renameCurrentStateConnector(connected, connected.connectors.at(-1).id, 'No').connectors.at(-1).label, 'No');
 assert.throws(() => addCurrentStateConnector(canvasMap, 'n1', 'missing', 'No'), /valid source and target/);
 

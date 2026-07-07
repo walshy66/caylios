@@ -2,20 +2,20 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Background,
+  ConnectionMode,
   Controls,
   MarkerType,
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
   type Connection,
-  type Edge,
   type Node,
   type NodeProps,
   type OnConnect,
   type OnNodeDrag,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { CanvasShape } from './CanvasShapes';
+import { CanvasLabelEdge, CanvasShape, type CanvasLabelEdgeType } from './CanvasShapes';
 import {
   acceptCurrentStateMap,
   addCurrentStateMapComment,
@@ -187,6 +187,7 @@ function VisualLaneNode({ id, data }: NodeProps<Node<VisualLaneNodeData>>) {
 }
 
 const PROCESS_FLOW_NODE_TYPES = { processShape: ProcessFlowNode, visualLane: VisualLaneNode };
+const PROCESS_FLOW_EDGE_TYPES = { canvasLabel: CanvasLabelEdge };
 
 export default function CurrentStateMapsPage({ onNavigate }: Props) {
   const [maps, setMaps] = useState<CurrentStateMap[]>([]);
@@ -201,6 +202,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [saveTitle, setSaveTitle] = useState('');
   const [commentsNodeId, setCommentsNodeId] = useState<string | null>(null);
+  const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
   const [workflowCommentBody, setWorkflowCommentBody] = useState('');
   const selectedRoute = parseCurrentStateMapRoute(currentPath);
   const exportFrameRef = useRef<HTMLDivElement | null>(null);
@@ -358,7 +360,16 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
 
   const handleConnect: OnConnect = (connection: Connection) => {
     if (!selectedMap || !connection.source || !connection.target) return;
-    replaceSelectedMap(addCurrentStateConnector(selectedMap, connection.source, connection.target, ''));
+    replaceSelectedMap(
+      addCurrentStateConnector(
+        selectedMap,
+        connection.source,
+        connection.target,
+        '',
+        connection.sourceHandle ?? null,
+        connection.targetHandle ?? null,
+      ),
+    );
   };
 
   const handleNodeDragStop: OnNodeDrag = (_event, node) => {
@@ -554,17 +565,29 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
     }));
     return [...laneNodes, ...processNodes];
   }, [selectedMap, commentsNodeId]);
-  const flowEdges = useMemo<Edge[]>(() => {
+  const flowEdges = useMemo<CanvasLabelEdgeType[]>(() => {
     if (!selectedMap) return [];
+    const locked = selectedMap.status !== 'draft';
     return selectedMap.connectors.map((connector) => ({
       id: connector.id,
       source: connector.source_node_id,
       target: connector.target_node_id,
-      label: connector.label ?? undefined,
+      sourceHandle: connector.source_handle ?? 'right',
+      targetHandle: connector.target_handle ?? 'left',
       markerEnd: { type: MarkerType.ArrowClosed },
-      type: 'smoothstep',
+      type: 'canvasLabel',
+      data: {
+        label: connector.label ?? '',
+        editing: editingEdgeId === connector.id,
+        onStartEdit: locked ? undefined : (edgeId: string) => setEditingEdgeId(edgeId),
+        onCommit: (edgeId: string, label: string) => {
+          setEditingEdgeId(null);
+          if (locked) return;
+          replaceSelectedMap(renameCurrentStateConnector(selectedMap, edgeId, label));
+        },
+      },
     }));
-  }, [selectedMap]);
+  }, [selectedMap, editingEdgeId]);
   const exportMetadata = selectedMap ? buildCurrentStateMapExportMetadata(selectedMap, selectedMap.workspace_id) : null;
 
   return (
@@ -705,34 +728,18 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                         );
                       })}
                     </div>
-                    {selectedMap.connectors.length > 0 ? (
-                      <div className="process-map-floating-panel process-map-floating-connectors" aria-label="Process map connectors">
-                        <h4>Connector labels</h4>
-                        {selectedMap.connectors.map((connector) => {
-                          const source = selectedMap.nodes.find((node) => node.id === connector.source_node_id);
-                          const target = selectedMap.nodes.find((node) => node.id === connector.target_node_id);
-                          return (
-                            <label key={connector.id} className="process-map-connector-row">
-                              <span>{source?.title ?? 'Unknown'} → {target?.title ?? 'Unknown'}</span>
-                              <input
-                                aria-label={`Connector label from ${source?.title ?? 'unknown'} to ${target?.title ?? 'unknown'}`}
-                                value={connector.label ?? ''}
-                                placeholder="Label"
-                                disabled={selectedMap.status !== 'draft'}
-                                onChange={(event) => replaceSelectedMap(renameCurrentStateConnector(selectedMap, connector.id, event.target.value))}
-                              />
-                            </label>
-                          );
-                        })}
-                      </div>
-                    ) : null}
                     <ReactFlowProvider>
                       <ReactFlow
                         nodes={flowNodes}
                         edges={flowEdges}
                         nodeTypes={PROCESS_FLOW_NODE_TYPES}
+                        edgeTypes={PROCESS_FLOW_EDGE_TYPES}
+                        connectionMode={ConnectionMode.Loose}
                         onConnect={handleConnect}
                         onNodeDragStop={handleNodeDragStop}
+                        onEdgeDoubleClick={(_event, edge) => {
+                          if (selectedMap.status === 'draft') setEditingEdgeId(edge.id);
+                        }}
                         nodesDraggable={selectedMap.status === 'draft'}
                         nodesConnectable={selectedMap.status === 'draft'}
                         fitView

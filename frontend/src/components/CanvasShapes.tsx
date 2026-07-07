@@ -1,5 +1,13 @@
-import type { ReactNode } from 'react';
-import { Handle, Position } from '@xyflow/react';
+import { useState, type ReactNode } from 'react';
+import {
+  BaseEdge,
+  EdgeLabelRenderer,
+  Handle,
+  Position,
+  getSmoothStepPath,
+  type Edge,
+  type EdgeProps,
+} from '@xyflow/react';
 
 /** Shared flowchart shape vocabulary for the Current State and Workflows
  * canvases, drawn from docs/basic_icons.drawio. */
@@ -108,6 +116,13 @@ function ShapeOutline({ kind, width: w, height: h }: { kind: CanvasShapeKind; wi
   }
 }
 
+const HANDLE_POSITIONS: { id: string; position: Position }[] = [
+  { id: 'top', position: Position.Top },
+  { id: 'right', position: Position.Right },
+  { id: 'bottom', position: Position.Bottom },
+  { id: 'left', position: Position.Left },
+];
+
 export type CanvasShapeProps = {
   nodeId: string;
   kind: string;
@@ -117,27 +132,114 @@ export type CanvasShapeProps = {
   corner?: ReactNode;
 };
 
-/** Presentational flowchart node: SVG geometry, centred editable label, and an
- * optional corner affordance (e.g. comments). Rendered inside a React Flow
- * custom node so it owns the connection handles. */
+/** Presentational flowchart node: SVG geometry, a double-click-to-rename
+ * label, four-sided connection handles, and an optional corner affordance
+ * (e.g. comments). Rendered inside a React Flow custom node so it owns the
+ * handles. Use with `connectionMode={ConnectionMode.Loose}` so every handle
+ * can start or end a connection. */
 export function CanvasShape({ nodeId, kind, title, locked, onRename, corner }: CanvasShapeProps) {
   const shapeKind = normalizeShapeKind(kind);
   const { width, height } = canvasShapeSize(shapeKind);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(title);
+
+  function commit() {
+    setEditing(false);
+    if (draft.trim() && draft.trim() !== title) onRename(nodeId, draft.trim());
+  }
+
   return (
     <div className={`canvas-shape-node canvas-shape-${shapeKind}`} style={{ width, height }}>
-      <Handle type="target" position={Position.Left} isConnectable={!locked} />
+      {HANDLE_POSITIONS.map((handle) => (
+        <Handle key={handle.id} id={handle.id} type="source" position={handle.position} isConnectable={!locked} />
+      ))}
       <svg className="canvas-shape-svg" viewBox={`0 0 ${width} ${height}`} width={width} height={height} aria-hidden="true" focusable="false">
         <ShapeOutline kind={shapeKind} width={width} height={height} />
       </svg>
-      <input
-        className="canvas-shape-label"
-        aria-label={`${shapeKind} shape label`}
-        value={title}
-        disabled={locked}
-        onChange={(event) => onRename(nodeId, event.target.value)}
-      />
+      {editing ? (
+        <input
+          className="canvas-shape-label nodrag"
+          aria-label={`${shapeKind} shape label`}
+          value={draft}
+          autoFocus
+          onFocus={(event) => event.target.select()}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') commit();
+            if (event.key === 'Escape') setEditing(false);
+          }}
+        />
+      ) : (
+        <span
+          className="canvas-shape-label"
+          role={locked ? undefined : 'button'}
+          title={locked ? undefined : 'Double-click to rename'}
+          onDoubleClick={() => {
+            if (locked) return;
+            setDraft(title);
+            setEditing(true);
+          }}
+        >
+          {title}
+        </span>
+      )}
       {corner}
-      <Handle type="source" position={Position.Right} isConnectable={!locked} />
     </div>
+  );
+}
+
+export type CanvasEdgeData = {
+  label: string;
+  editing: boolean;
+  onStartEdit?: (edgeId: string) => void;
+  onCommit: (edgeId: string, label: string) => void;
+};
+
+export type CanvasLabelEdgeType = Edge<CanvasEdgeData>;
+
+/** Smoothstep edge with an inline label: double-click the edge (or its label)
+ * to edit in place. The page owns which edge is editing. */
+export function CanvasLabelEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  data,
+  markerEnd,
+}: EdgeProps<CanvasLabelEdgeType>) {
+  const [path, labelX, labelY] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
+  if (!data) return <BaseEdge id={id} path={path} markerEnd={markerEnd} />;
+  return (
+    <>
+      <BaseEdge id={id} path={path} markerEnd={markerEnd} />
+      <EdgeLabelRenderer>
+        <div
+          className="canvas-edge-label nodrag nopan"
+          style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+        >
+          {data.editing ? (
+            <input
+              aria-label="Connector label"
+              defaultValue={data.label}
+              autoFocus
+              onFocus={(event) => event.target.select()}
+              onBlur={(event) => data.onCommit(id, event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') event.currentTarget.blur();
+                if (event.key === 'Escape') data.onCommit(id, data.label);
+              }}
+            />
+          ) : data.label ? (
+            <span onDoubleClick={() => data.onStartEdit?.(id)} title={data.onStartEdit ? 'Double-click to edit label' : undefined}>
+              {data.label}
+            </span>
+          ) : null}
+        </div>
+      </EdgeLabelRenderer>
+    </>
   );
 }

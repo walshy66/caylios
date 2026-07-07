@@ -259,6 +259,8 @@ class CurrentStateConnector(BaseModel):
     source_node_id: str = Field(min_length=1)
     target_node_id: str = Field(min_length=1)
     label: str | None = None
+    source_handle: str | None = None
+    target_handle: str | None = None
 
 
 class CurrentStateComment(BaseModel):

@@ -286,6 +286,8 @@ export function addCurrentStateConnector(
   sourceNodeId: string,
   targetNodeId: string,
   label = '',
+  sourceHandle: string | null = null,
+  targetHandle: string | null = null,
 ): CurrentStateMap {
   assertEditable(map);
   const nodeIds = new Set(map.nodes.map((node) => node.id));
@@ -301,6 +303,8 @@ export function addCurrentStateConnector(
         source_node_id: sourceNodeId,
         target_node_id: targetNodeId,
         label: label.trim(),
+        source_handle: sourceHandle,
+        target_handle: targetHandle,
       },
     ],
   };
