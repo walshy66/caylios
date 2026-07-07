@@ -94,7 +94,7 @@ def init_db() -> None:
                 extraction_error TEXT,
                 suggested_classification TEXT,
                 extracted_fields TEXT,
-                review_status TEXT NOT NULL CHECK (review_status IN ('pending', 'approved')) DEFAULT 'pending',
+                review_status TEXT NOT NULL CHECK (review_status IN ('pending', 'reviewed', 'approved')) DEFAULT 'pending',
                 last_reviewed_by TEXT,
                 last_reviewed_at TEXT,
                 approved_by TEXT,
@@ -281,7 +281,7 @@ def init_db() -> None:
         if "extracted_fields" not in workflow_run_columns:
             conn.execute("ALTER TABLE workflow_runs ADD COLUMN extracted_fields TEXT")
         if "review_status" not in workflow_run_columns:
-            conn.execute("ALTER TABLE workflow_runs ADD COLUMN review_status TEXT NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending', 'approved'))")
+            conn.execute("ALTER TABLE workflow_runs ADD COLUMN review_status TEXT NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending', 'reviewed', 'approved'))")
         if "last_reviewed_by" not in workflow_run_columns:
             conn.execute("ALTER TABLE workflow_runs ADD COLUMN last_reviewed_by TEXT")
         if "last_reviewed_at" not in workflow_run_columns:
@@ -294,6 +294,57 @@ def init_db() -> None:
             conn.execute("ALTER TABLE workflow_runs ADD COLUMN destination_record_id TEXT")
         if "audit_summary" not in workflow_run_columns:
             conn.execute("ALTER TABLE workflow_runs ADD COLUMN audit_summary TEXT")
+
+        # Databases created before the 'reviewed' state baked a two-value
+        # review_status CHECK into the table. SQLite cannot alter constraints,
+        # so rebuild the table when the stored schema predates 'reviewed'.
+        workflow_runs_sql_row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'workflow_runs'"
+        ).fetchone()
+        if (
+            workflow_runs_sql_row
+            and "review_status" in workflow_runs_sql_row[0]
+            and "'reviewed'" not in workflow_runs_sql_row[0]
+        ):
+            workflow_run_column_list = (
+                "id, workspace_id, document_id, intent, status, extraction_status, extraction_error, "
+                "suggested_classification, extracted_fields, review_status, last_reviewed_by, "
+                "last_reviewed_at, approved_by, approved_at, destination_record_id, audit_summary, "
+                "created_at, updated_at"
+            )
+            conn.execute("DROP TABLE IF EXISTS workflow_runs_rebuild")
+            conn.execute(
+                """
+                CREATE TABLE workflow_runs_rebuild (
+                    id TEXT PRIMARY KEY,
+                    workspace_id TEXT,
+                    document_id TEXT NOT NULL,
+                    intent TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK (status IN ('created', 'running', 'completed', 'errored')),
+                    extraction_status TEXT,
+                    extraction_error TEXT,
+                    suggested_classification TEXT,
+                    extracted_fields TEXT,
+                    review_status TEXT NOT NULL CHECK (review_status IN ('pending', 'reviewed', 'approved')) DEFAULT 'pending',
+                    last_reviewed_by TEXT,
+                    last_reviewed_at TEXT,
+                    approved_by TEXT,
+                    approved_at TEXT,
+                    destination_record_id TEXT,
+                    audit_summary TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (document_id) REFERENCES documents(id)
+                )
+                """
+            )
+            conn.execute(
+                f"INSERT INTO workflow_runs_rebuild ({workflow_run_column_list})"
+                f" SELECT {workflow_run_column_list} FROM workflow_runs"
+            )
+            conn.execute("DROP TABLE workflow_runs")
+            conn.execute("ALTER TABLE workflow_runs_rebuild RENAME TO workflow_runs")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_workflow_runs_workspace ON workflow_runs(workspace_id)")
         conn.commit()
 
 

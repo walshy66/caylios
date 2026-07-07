@@ -195,3 +195,52 @@ def test_approved_run_exports_writeback_audits_and_purges_sensitive_source(monke
     assert audit["destinations"][0]["status"] == "succeeded"
     assert source_path.exists() is False
     assert detail.json()["document"]["deletion_status"] == "deleted"
+
+
+def test_init_db_rebuilds_pre_reviewed_review_status_constraint(monkeypatch, tmp_path):
+    """Databases created before the 'reviewed' state baked a two-value CHECK
+    into workflow_runs; init_db must rebuild the table so mark-reviewed works."""
+    use_temp_db(monkeypatch, tmp_path)
+    (tmp_path / "data").mkdir(parents=True)
+
+    with db.sqlite3.connect(db.DB_PATH) as conn:
+        conn.execute(
+            """
+            CREATE TABLE workflow_runs (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT,
+                document_id TEXT NOT NULL,
+                intent TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('created', 'running', 'completed', 'errored')),
+                extraction_status TEXT,
+                extraction_error TEXT,
+                suggested_classification TEXT,
+                extracted_fields TEXT,
+                review_status TEXT NOT NULL CHECK (review_status IN ('pending', 'approved')) DEFAULT 'pending',
+                last_reviewed_by TEXT,
+                last_reviewed_at TEXT,
+                approved_by TEXT,
+                approved_at TEXT,
+                destination_record_id TEXT,
+                audit_summary TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (document_id) REFERENCES documents(id)
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO workflow_runs (id, document_id, intent, status, created_at, updated_at)"
+            " VALUES ('run-old', 'doc-old', 'extract_actions', 'completed',"
+            " '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00+00:00')"
+        )
+        conn.commit()
+
+    db.init_db()
+
+    with db.sqlite3.connect(db.DB_PATH) as conn:
+        conn.execute("UPDATE workflow_runs SET review_status = 'reviewed' WHERE id = 'run-old'")
+        conn.commit()
+        row = conn.execute("SELECT review_status FROM workflow_runs WHERE id = 'run-old'").fetchone()
+
+    assert row[0] == "reviewed"
