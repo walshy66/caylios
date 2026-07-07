@@ -858,29 +858,88 @@ body.process-map-open {
   justify-content: end;
 }
 
-.process-map-flow-node {
+.canvas-shape-node {
+  position: relative;
   display: grid;
-  gap: 6px;
-  min-width: 170px;
-  padding: 12px;
-  border: 1px solid rgba(32, 180, 201, 0.35);
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  place-items: center;
+  cursor: grab;
 }
 
-.process-map-flow-node input {
-  width: 100%;
-  box-sizing: border-box;
+.canvas-shape-svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.canvas-shape-outline {
+  fill: var(--surface);
+  stroke: var(--sts-navy);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.canvas-shape-detail {
+  fill: none;
+  stroke: var(--sts-navy);
+  stroke-width: 1.5;
+}
+
+.react-flow__node.selected .canvas-shape-outline,
+.canvas-shape-node:hover .canvas-shape-outline {
+  stroke: var(--sts-cyan);
+}
+
+.canvas-shape-label {
+  position: relative;
+  z-index: 1;
+  width: 62%;
   border: 0;
   background: transparent;
-  font-weight: 800;
+  color: var(--page-text);
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
 }
 
-.process-map-flow-node span {
-  color: #5d6b82;
-  font-size: 0.78rem;
-  text-transform: uppercase;
+.canvas-shape-decision .canvas-shape-label {
+  width: 50%;
+}
+
+.canvas-shape-corner {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.canvas-shape-node:hover .canvas-shape-corner,
+.react-flow__node.selected .canvas-shape-corner,
+.canvas-shape-corner:focus-visible {
+  opacity: 1;
+}
+
+.canvas-shape-corner svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: var(--sts-navy);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.canvas-shape-corner:hover svg {
+  stroke: var(--sts-cyan-ink);
 }
 
 .process-map-connectors {
@@ -906,78 +965,6 @@ body.process-map-open {
   min-width: 0;
   font-weight: 700;
   line-height: 1.35;
-}
-
-.process-map-node {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 180px;
-  min-height: 92px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: grab;
-}
-
-.process-map-node::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 2px solid rgba(32, 180, 201, 0.45);
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(9, 3, 35, 0.12);
-  z-index: 0;
-}
-
-.process-map-node-content {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 6px;
-  width: min(140px, calc(100% - 28px));
-  text-align: center;
-}
-
-.process-map-node input {
-  width: 100%;
-  box-sizing: border-box;
-  border: 0;
-  background: transparent;
-  font-weight: 700;
-  text-align: center;
-}
-
-.process-map-node-process::before {
-  border-radius: 8px;
-}
-
-.process-map-node-decision {
-  width: 168px;
-  min-height: 128px;
-}
-
-.process-map-node-decision::before {
-  inset: 6px 20px;
-  transform: rotate(45deg) scale(0.86);
-  border-radius: 6px;
-}
-
-.process-map-node-start::before,
-.process-map-node-end::before {
-  border-radius: 999px;
-}
-
-.process-map-node-document::before {
-  border-radius: 8px 8px 18px 18px;
-  clip-path: path('M 0 0 H 180 V 78 C 135 104 90 58 0 86 Z');
-}
-
-.process-map-node span {
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 0.75;
 }
 
 .portal-layout {

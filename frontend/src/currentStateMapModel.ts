@@ -1,7 +1,18 @@
 import type { CurrentStateComment, CurrentStateLane, CurrentStateMap, CurrentStateNode, CurrentStatePhase, CurrentStatePosition } from './api';
 
 export type CurrentStateLaneType = NonNullable<CurrentStateLane['lane_type']>;
-export type CurrentStateNodeType = 'start' | 'end' | 'decision' | 'process' | 'document';
+export type CurrentStateNodeType =
+  | 'start'
+  | 'end'
+  | 'decision'
+  | 'process'
+  | 'document'
+  | 'data'
+  | 'multi-document'
+  | 'manual-input'
+  | 'manual-operation'
+  | 'internal-storage'
+  | 'predefined-process';
 
 export const CURRENT_STATE_LANE_TYPES: { value: CurrentStateLaneType; label: string }[] = [
   { value: 'role-team', label: 'Role/team' },
@@ -16,6 +27,12 @@ export const CURRENT_STATE_NODE_TYPES: { value: CurrentStateNodeType; label: str
   { value: 'decision', label: 'Decision' },
   { value: 'process', label: 'Process' },
   { value: 'document', label: 'Document' },
+  { value: 'data', label: 'Data' },
+  { value: 'multi-document', label: 'Multi document' },
+  { value: 'manual-input', label: 'Manual input' },
+  { value: 'manual-operation', label: 'Manual operation' },
+  { value: 'internal-storage', label: 'Internal storage' },
+  { value: 'predefined-process', label: 'Predefined process' },
 ];
 
 export type CurrentStateCanvasCell = {

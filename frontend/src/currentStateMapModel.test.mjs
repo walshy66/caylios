@@ -118,7 +118,19 @@ assert.throws(() => moveCurrentStateNodeToCell(canvasMap, 'n1', 'missing', 'revi
 
 assert.deepEqual(
   CURRENT_STATE_NODE_TYPES.map((nodeType) => nodeType.value),
-  ['start', 'end', 'decision', 'process', 'document'],
+  [
+    'start',
+    'end',
+    'decision',
+    'process',
+    'document',
+    'data',
+    'multi-document',
+    'manual-input',
+    'manual-operation',
+    'internal-storage',
+    'predefined-process',
+  ],
 );
 const withDecision = addCurrentStateNode(canvasMap, 'decision', 'sales', 'intake', 'Check eligibility');
 assert.equal(withDecision.nodes.at(-1).node_type, 'decision');

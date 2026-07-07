@@ -3,10 +3,8 @@ import { createPortal } from 'react-dom';
 import {
   Background,
   Controls,
-  Handle,
   MarkerType,
   MiniMap,
-  Position,
   ReactFlow,
   ReactFlowProvider,
   type Connection,
@@ -17,6 +15,7 @@ import {
   type OnNodeDrag,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { CanvasShape } from './CanvasShapes';
 import {
   acceptCurrentStateMap,
   addCurrentStateMapComment,
@@ -79,22 +78,26 @@ type VisualLaneNodeData = {
 };
 
 function ProcessFlowNode({ id, data }: NodeProps<Node<ProcessFlowNodeData>>) {
-  const label = data.nodeType === 'process' ? 'Process' : data.nodeType.charAt(0).toUpperCase() + data.nodeType.slice(1);
   return (
-    <article className={`process-map-flow-node process-map-node process-map-node-${data.nodeType}`}>
-      <Handle type="target" position={Position.Left} isConnectable={!data.locked} />
-      <div className="process-map-node-content">
-        <input
-          aria-label={`${data.nodeType} shape label`}
-          value={data.title}
-          disabled={data.locked}
-          onChange={(event) => data.onRename(id, event.target.value)}
-        />
-        <span>{label}</span>
-        <button type="button" onClick={() => data.onComment(id)}>Comment</button>
-      </div>
-      <Handle type="source" position={Position.Right} isConnectable={!data.locked} />
-    </article>
+    <CanvasShape
+      nodeId={id}
+      kind={data.nodeType}
+      title={data.title}
+      locked={data.locked}
+      onRename={data.onRename}
+      corner={
+        <button
+          type="button"
+          className="canvas-shape-corner"
+          aria-label={`Comment on ${data.title}`}
+          onClick={() => data.onComment(id)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 5h16v11H10l-6 5z" />
+          </svg>
+        </button>
+      }
+    />
   );
 }
 
