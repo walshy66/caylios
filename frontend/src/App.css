@@ -1024,6 +1024,57 @@ body.process-map-open {
   margin-bottom: 10px;
 }
 
+.workflow-title-input {
+  min-width: 200px;
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--page-text);
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.workflow-title-input:hover,
+.workflow-title-input:focus {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.process-map-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.process-map-list li {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.process-map-list li > button:first-child {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+}
+
+.process-map-list li > button:first-child span {
+  color: var(--muted-text);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.workflow-delete {
+  align-self: center;
+  font-size: 12px;
+}
+
 .canvas-edge-label {
   position: absolute;
   z-index: 5;
