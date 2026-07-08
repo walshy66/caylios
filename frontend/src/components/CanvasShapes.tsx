@@ -174,7 +174,7 @@ export function CanvasShape({ nodeId, kind, title, locked, onRename, corner }: C
         <span
           className="canvas-shape-label"
           role={locked ? undefined : 'button'}
-          title={locked ? undefined : 'Double-click to rename'}
+          title={locked ? title : `${title} — double-click to rename`}
           onDoubleClick={() => {
             if (locked) return;
             setDraft(title);

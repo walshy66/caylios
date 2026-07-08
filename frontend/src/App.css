@@ -857,6 +857,27 @@ body.process-map-open {
   position: absolute;
   inset: 0;
   overflow: visible;
+  pointer-events: none;
+}
+
+.canvas-shape-node .react-flow__handle {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--surface);
+  background: var(--sts-cyan);
+  opacity: 0.4;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  z-index: 5;
+}
+
+.canvas-shape-node:hover .react-flow__handle,
+.react-flow__node.selected .canvas-shape-node .react-flow__handle {
+  opacity: 1;
+}
+
+.canvas-shape-node .react-flow__handle:hover {
+  transform-origin: center;
+  scale: 1.35;
 }
 
 .canvas-shape-outline {
@@ -887,6 +908,13 @@ body.process-map-open {
   font-weight: 700;
   font-size: 13px;
   text-align: center;
+}
+
+span.canvas-shape-label {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .canvas-shape-decision .canvas-shape-label {
