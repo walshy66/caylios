@@ -204,11 +204,14 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [saveTitle, setSaveTitle] = useState('');
   const [commentsNodeId, setCommentsNodeId] = useState<string | null>(null);
+  const [commentsPanelOpen, setCommentsPanelOpen] = useState(false);
   const [editingEdgeId, setEditingEdgeId] = useState<string | null>(null);
-  const [workflowCommentBody, setWorkflowCommentBody] = useState('');
   const selectedRoute = parseCurrentStateMapRoute(currentPath);
   const exportFrameRef = useRef<HTMLDivElement | null>(null);
-  const flowInstanceRef = useRef<{ screenToFlowPosition: (point: { x: number; y: number }) => { x: number; y: number } } | null>(null);
+  const flowInstanceRef = useRef<{
+    screenToFlowPosition: (point: { x: number; y: number }) => { x: number; y: number };
+    setCenter: (x: number, y: number, options?: { zoom?: number; duration?: number }) => void;
+  } | null>(null);
   const undoStackRef = useRef<CurrentStateMap[]>([]);
   const redoStackRef = useRef<CurrentStateMap[]>([]);
 
@@ -456,10 +459,26 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
     if (!selectedMap || !body.trim()) return;
     setError(null);
     try {
-      replaceSelectedMap(await addCurrentStateMapComment(selectedMap.id, { node_id: nodeId, body: body.trim(), resolved: false }), false);
+      // The comment endpoint returns the backend's stored map, so any unsaved
+      // canvas changes must be saved first or they would be overwritten (and
+      // comments on unsaved shapes would be rejected).
+      let mapForComment = selectedMap;
+      if (hasUnsavedChanges && selectedMap.status === 'draft') {
+        mapForComment = await saveMap(selectedMap);
+      }
+      replaceSelectedMap(await addCurrentStateMapComment(mapForComment.id, { node_id: nodeId, body: body.trim(), resolved: false }), false);
     } catch {
       setError('Unable to add this process map comment.');
     }
+  }
+
+  function focusComment(nodeId: string | null) {
+    if (!selectedMap || !nodeId) return;
+    const index = selectedMap.nodes.findIndex((node) => node.id === nodeId);
+    if (index < 0) return;
+    const position = currentStateNodePosition(selectedMap.nodes[index], index);
+    flowInstanceRef.current?.setCenter(position.x + 85, position.y + 40, { zoom: 1.15, duration: 400 });
+    setCommentsNodeId(nodeId);
   }
 
   async function handleUploadImport(file: File | null) {
@@ -767,40 +786,45 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                       ))}
                       <button type="button" disabled={selectedMap.status !== 'draft'} onClick={handleAddLane}>Add visual lane</button>
                     </div>
-                    <div className="process-map-floating-panel process-map-floating-comments" aria-label="Process map comments">
-                      <div className="panel-heading-row">
-                        <h4>Comments</h4>
+                    <button
+                      type="button"
+                      className="process-map-floating-panel process-map-comments-toggle"
+                      aria-expanded={commentsPanelOpen}
+                      aria-label={`All comments (${selectedMap.comments.length})`}
+                      onClick={() => setCommentsPanelOpen((open) => !open)}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M4 5h16v11H10l-6 5z" />
+                      </svg>
+                      {selectedMap.comments.length}
+                    </button>
+                    {commentsPanelOpen ? (
+                      <div className="process-map-floating-panel process-map-floating-comments" aria-label="All canvas comments">
+                        <div className="panel-heading-row">
+                          <h4>Comments</h4>
+                          <button type="button" onClick={() => setCommentsPanelOpen(false)} aria-label="Close comments panel">×</button>
+                        </div>
+                        {selectedMap.comments.length === 0 ? <p className="muted">No comments yet. Select a shape and use its comment bubble.</p> : null}
+                        {selectedMap.comments.map((comment) => {
+                          const node = selectedMap.nodes.find((candidate) => candidate.id === comment.node_id);
+                          return (
+                            <button
+                              key={comment.id}
+                              type="button"
+                              className="process-map-comment-link"
+                              disabled={!node}
+                              title={node ? 'Go to this comment on the canvas' : undefined}
+                              onClick={() => focusComment(comment.node_id)}
+                            >
+                              <strong>{node?.title ?? 'Workflow'}</strong>
+                              <p>{comment.body}</p>
+                              <small>{comment.author ?? 'Unknown author'} · {comment.resolved ? 'Resolved' : 'Open'}</small>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <form
-                        className="canvas-workflow-comment-form"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          if (!workflowCommentBody.trim()) return;
-                          handleAddComment(null, workflowCommentBody.trim());
-                          setWorkflowCommentBody('');
-                        }}
-                      >
-                        <textarea
-                          aria-label="Add a workflow comment"
-                          value={workflowCommentBody}
-                          rows={2}
-                          placeholder="Add a workflow comment"
-                          onChange={(event) => setWorkflowCommentBody(event.target.value)}
-                        />
-                        <button type="submit" disabled={!workflowCommentBody.trim()}>Add</button>
-                      </form>
-                      {selectedMap.comments.length === 0 ? <p className="muted">No comments yet.</p> : null}
-                      {selectedMap.comments.map((comment) => {
-                        const node = selectedMap.nodes.find((candidate) => candidate.id === comment.node_id);
-                        return (
-                          <article key={comment.id} className="process-map-comment">
-                            <strong>{node?.title ?? 'Workflow'}</strong>
-                            <p>{comment.body}</p>
-                            <small>{comment.author ?? 'Unknown author'} · {comment.resolved ? 'Resolved' : 'Open'}</small>
-                          </article>
-                        );
-                      })}
-                    </div>
+                    ) : null}
+                    {error ? <p role="alert" className="canvas-error">{error}</p> : null}
                     <ReactFlowProvider>
                       <ReactFlow
                         nodes={flowNodes}
