@@ -25,6 +25,8 @@ Owns frontend source in `src/`, Vite/TypeScript config, frontend Docker/Fly file
 - Preserve accessibility and responsive behavior when changing screens.
 - Current State UI must treat only Draft maps as editable; Approved/Archived states come from backend and must not be bypassed client-side.
 - Form editor work starts as a mock-backed, real-route prototype: template-first creation, vertical canvas, connector chips/mapping review, form-level confirmation, and draft-to-publish UX before backend persistence.
+- `src/components/CanvasShapes.tsx` is the shared canvas foundation (shape geometry, rename-in-place, four-sided handles, labelled edges) for both the Current State and Workflows canvases — improve it there, not per-page; canvases use React Flow with `ConnectionMode.Loose`.
+- Workflows canvas v1 persists drafts to localStorage via `workflowCanvasModel.ts`; its load/save seam is where backend workflow definitions will plug in. No approval/lifecycle semantics client-side until the backend owns them.
 
 ## Verification
 
