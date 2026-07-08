@@ -38,8 +38,10 @@ import {
   addCurrentStateConnector,
   addCurrentStateLane,
   addCurrentStateNode,
+  reconnectCurrentStateConnector,
   removeCurrentStateConnectors,
   removeCurrentStateNodes,
+  setCurrentStateConnectorMarker,
   buildCurrentStateMapExportMetadata,
   changeCurrentStateLaneType,
   currentStateMapExportFilename,
@@ -655,17 +657,26 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
       target: connector.target_node_id,
       sourceHandle: connector.source_handle ?? 'right',
       targetHandle: connector.target_handle ?? 'left',
-      markerEnd: { type: MarkerType.ArrowClosed },
+      markerEnd: connector.marker_end === 'none' ? undefined : { type: MarkerType.ArrowClosed },
       type: 'canvasLabel',
+      reconnectable: !locked,
       data: {
         label: connector.label ?? '',
         editing: editingEdgeId === connector.id,
+        arrowEnd: connector.marker_end !== 'none',
         onStartEdit: locked ? undefined : (edgeId: string) => setEditingEdgeId(edgeId),
         onCommit: (edgeId: string, label: string) => {
           setEditingEdgeId(null);
           if (locked) return;
           replaceSelectedMap(renameCurrentStateConnector(selectedMap, edgeId, label));
         },
+        onToggleArrow: locked
+          ? undefined
+          : (edgeId: string) =>
+              replaceSelectedMap(
+                setCurrentStateConnectorMarker(selectedMap, edgeId, connector.marker_end === 'none' ? 'arrow' : 'none'),
+              ),
+        onDelete: locked ? undefined : (edgeId: string) => replaceSelectedMap(removeCurrentStateConnectors(selectedMap, [edgeId])),
       },
     }));
   }, [selectedMap, editingEdgeId]);
@@ -836,6 +847,19 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                           flowInstanceRef.current = instance;
                         }}
                         onConnect={handleConnect}
+                        onReconnect={(oldEdge, connection) => {
+                          if (selectedMap.status !== 'draft' || !connection.source || !connection.target) return;
+                          replaceSelectedMap(
+                            reconnectCurrentStateConnector(
+                              selectedMap,
+                              oldEdge.id,
+                              connection.source,
+                              connection.target,
+                              connection.sourceHandle ?? null,
+                              connection.targetHandle ?? null,
+                            ),
+                          );
+                        }}
                         onNodeDragStop={handleNodeDragStop}
                         onEdgeDoubleClick={(_event, edge) => {
                           if (selectedMap.status === 'draft') setEditingEdgeId(edge.id);

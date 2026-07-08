@@ -192,14 +192,20 @@ export function CanvasShape({ nodeId, kind, title, locked, onRename, corner }: C
 export type CanvasEdgeData = {
   label: string;
   editing: boolean;
+  arrowEnd: boolean;
   onStartEdit?: (edgeId: string) => void;
   onCommit: (edgeId: string, label: string) => void;
+  onToggleArrow?: (edgeId: string) => void;
+  onDelete?: (edgeId: string) => void;
 };
 
 export type CanvasLabelEdgeType = Edge<CanvasEdgeData>;
 
 /** Smoothstep edge with an inline label: double-click the edge (or its label)
- * to edit in place. The page owns which edge is editing. */
+ * to edit in place. Selecting the edge shows a small toolbar for toggling the
+ * arrowhead and deleting the connector; endpoints are reconnectable by
+ * dragging them when the page wires onReconnect. The page owns which edge is
+ * editing. */
 export function CanvasLabelEdge({
   id,
   sourceX,
@@ -210,9 +216,11 @@ export function CanvasLabelEdge({
   targetPosition,
   data,
   markerEnd,
+  selected,
 }: EdgeProps<CanvasLabelEdgeType>) {
   const [path, labelX, labelY] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
   if (!data) return <BaseEdge id={id} path={path} markerEnd={markerEnd} />;
+  const showToolbar = selected && !data.editing && (data.onToggleArrow || data.onDelete);
   return (
     <>
       <BaseEdge id={id} path={path} markerEnd={markerEnd} />
@@ -237,6 +245,21 @@ export function CanvasLabelEdge({
             <span onDoubleClick={() => data.onStartEdit?.(id)} title={data.onStartEdit ? 'Double-click to edit label' : undefined}>
               {data.label}
             </span>
+          ) : null}
+          {showToolbar ? (
+            <div className="canvas-edge-toolbar" role="toolbar" aria-label="Connector actions">
+              {data.onStartEdit ? (
+                <button type="button" onClick={() => data.onStartEdit?.(id)}>Label</button>
+              ) : null}
+              {data.onToggleArrow ? (
+                <button type="button" aria-pressed={data.arrowEnd} onClick={() => data.onToggleArrow?.(id)}>
+                  {data.arrowEnd ? 'Arrow: on' : 'Arrow: off'}
+                </button>
+              ) : null}
+              {data.onDelete ? (
+                <button type="button" className="canvas-edge-delete" onClick={() => data.onDelete?.(id)}>Delete</button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </EdgeLabelRenderer>

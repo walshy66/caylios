@@ -8,6 +8,7 @@ import {
   defaultWorkflowTitle,
   loadWorkflowDrafts,
   moveWorkflowStep,
+  reconnectWorkflowConnector,
   removeWorkflowConnectors,
   removeWorkflowDraft,
   removeWorkflowSteps,
@@ -15,6 +16,7 @@ import {
   renameWorkflowConnector,
   renameWorkflowStep,
   saveWorkflowDraft,
+  setWorkflowConnectorMarker,
 } from './workflowCanvasModel.ts';
 
 const NOW = '2026-07-08T00:00:00+00:00';
@@ -61,6 +63,13 @@ assert.throws(() => addWorkflowConnector(flow, 'step-1', 'missing', NOW), /valid
 
 assert.equal(renameWorkflowConnector(flow, 'connector-1', 'No', LATER).connectors[0].label, 'No');
 assert.equal(removeWorkflowConnectors(flow, ['connector-1'], LATER).connectors.length, 0);
+
+const reconnectedFlow = reconnectWorkflowConnector(flow, 'connector-1', 'step-2', 'step-1', 'left', 'right', LATER);
+assert.equal(reconnectedFlow.connectors[0].source_step_id, 'step-2');
+assert.equal(reconnectedFlow.connectors[0].target_step_id, 'step-1');
+assert.throws(() => reconnectWorkflowConnector(flow, 'connector-1', 'step-1', 'missing', null, null, LATER), /valid source and target/);
+assert.equal(setWorkflowConnectorMarker(flow, 'connector-1', 'none', LATER).connectors[0].marker_end, 'none');
+assert.equal(setWorkflowConnectorMarker(flow, 'connector-1', 'arrow', LATER).connectors[0].marker_end, 'arrow');
 
 const withoutStep = removeWorkflowSteps(flow, ['step-1'], LATER);
 assert.equal(withoutStep.steps.length, 1);

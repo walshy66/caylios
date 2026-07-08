@@ -1193,6 +1193,37 @@ span.canvas-shape-label {
   text-align: center;
 }
 
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--sts-cyan);
+  stroke-width: 2.5;
+}
+
+.react-flow__edgeupdater,
+.react-flow__edge.selected circle {
+  cursor: grab;
+}
+
+.canvas-edge-toolbar {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 6px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.canvas-edge-toolbar button {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.canvas-edge-toolbar .canvas-edge-delete {
+  color: #b00020;
+}
+
 .portal-layout {
   display: grid;
   grid-template-columns: minmax(320px, 420px) 1fr;

@@ -16,9 +16,11 @@ import {
   moveCurrentStateNode,
   moveCurrentStateNodeToCell,
   parseCurrentStateMapRoute,
+  reconnectCurrentStateConnector,
   removeCurrentStateConnectors,
   removeCurrentStateNodes,
   renameCurrentStateConnector,
+  setCurrentStateConnectorMarker,
   renameCurrentStateLane,
   renameCurrentStateNode,
   renameCurrentStatePhase,
@@ -163,6 +165,15 @@ assert.equal(connected.connectors.at(-1).target_handle, null);
 const connectedWithHandles = addCurrentStateConnector(withDecision, 'n1', 'n2', '', 'bottom', 'top');
 assert.equal(connectedWithHandles.connectors.at(-1).source_handle, 'bottom');
 assert.equal(connectedWithHandles.connectors.at(-1).target_handle, 'top');
+
+const connectorId = connected.connectors.at(-1).id;
+const reconnected = reconnectCurrentStateConnector(connected, connectorId, 'n2', 'n1', 'top', 'bottom');
+assert.equal(reconnected.connectors.at(-1).source_node_id, 'n2');
+assert.equal(reconnected.connectors.at(-1).target_node_id, 'n1');
+assert.equal(reconnected.connectors.at(-1).source_handle, 'top');
+assert.throws(() => reconnectCurrentStateConnector(connected, connectorId, 'n1', 'missing', null, null), /valid source and target/);
+assert.equal(setCurrentStateConnectorMarker(connected, connectorId, 'none').connectors.at(-1).marker_end, 'none');
+assert.equal(setCurrentStateConnectorMarker(connected, connectorId, 'arrow').connectors.at(-1).marker_end, 'arrow');
 
 const afterNodeRemoval = removeCurrentStateNodes(connected, ['n1']);
 assert.deepEqual(afterNodeRemoval.nodes.map((node) => node.id).includes('n1'), false);

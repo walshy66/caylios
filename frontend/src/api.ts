@@ -127,6 +127,7 @@ export type CurrentStateConnector = {
   label?: string;
   source_handle?: string | null;
   target_handle?: string | null;
+  marker_end?: 'arrow' | 'none' | null;
 };
 
 export type CurrentStateComment = {

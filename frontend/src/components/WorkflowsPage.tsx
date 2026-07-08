@@ -23,6 +23,7 @@ import {
   defaultWorkflowTitle,
   loadWorkflowDrafts,
   moveWorkflowStep,
+  reconnectWorkflowConnector,
   removeWorkflowConnectors,
   removeWorkflowDraft,
   removeWorkflowSteps,
@@ -30,6 +31,7 @@ import {
   renameWorkflowConnector,
   renameWorkflowStep,
   saveWorkflowDraft,
+  setWorkflowConnectorMarker,
   type WorkflowDraft,
 } from '../workflowCanvasModel';
 
@@ -188,16 +190,23 @@ export default function WorkflowsPage() {
       target: connector.target_step_id,
       sourceHandle: connector.source_handle ?? 'right',
       targetHandle: connector.target_handle ?? 'left',
-      markerEnd: { type: MarkerType.ArrowClosed },
+      markerEnd: connector.marker_end === 'none' ? undefined : { type: MarkerType.ArrowClosed },
       type: 'canvasLabel',
+      reconnectable: true,
       data: {
         label: connector.label,
         editing: editingEdgeId === connector.id,
+        arrowEnd: connector.marker_end !== 'none',
         onStartEdit: (edgeId: string) => setEditingEdgeId(edgeId),
         onCommit: (edgeId: string, label: string) => {
           setEditingEdgeId(null);
           applyDraftChange(renameWorkflowConnector(openDraft, edgeId, label, nowIso()));
         },
+        onToggleArrow: (edgeId: string) =>
+          applyDraftChange(
+            setWorkflowConnectorMarker(openDraft, edgeId, connector.marker_end === 'none' ? 'arrow' : 'none', nowIso()),
+          ),
+        onDelete: (edgeId: string) => applyDraftChange(removeWorkflowConnectors(openDraft, [edgeId], nowIso())),
       },
     }));
   }, [openDraft, editingEdgeId]);
@@ -288,6 +297,20 @@ export default function WorkflowsPage() {
                   flowInstanceRef.current = instance;
                 }}
                 onConnect={handleConnect}
+                onReconnect={(oldEdge, connection) => {
+                  if (!connection.source || !connection.target) return;
+                  applyDraftChange(
+                    reconnectWorkflowConnector(
+                      openDraft,
+                      oldEdge.id,
+                      connection.source,
+                      connection.target,
+                      connection.sourceHandle ?? null,
+                      connection.targetHandle ?? null,
+                      nowIso(),
+                    ),
+                  );
+                }}
                 onNodeDragStop={handleNodeDragStop}
                 onEdgeDoubleClick={(_event, edge) => setEditingEdgeId(edge.id)}
                 onDelete={({ nodes, edges }) => handleDeleteSelection(nodes, edges)}

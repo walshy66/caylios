@@ -328,6 +328,47 @@ export function removeCurrentStateConnectors(map: CurrentStateMap, connectorIds:
   return { ...map, connectors: map.connectors.filter((connector) => !ids.has(connector.id)) };
 }
 
+export function reconnectCurrentStateConnector(
+  map: CurrentStateMap,
+  connectorId: string,
+  sourceNodeId: string,
+  targetNodeId: string,
+  sourceHandle: string | null,
+  targetHandle: string | null,
+): CurrentStateMap {
+  assertEditable(map);
+  const nodeIds = new Set(map.nodes.map((node) => node.id));
+  if (!nodeIds.has(sourceNodeId) || !nodeIds.has(targetNodeId)) {
+    throw new Error('connector requires valid source and target nodes');
+  }
+  return {
+    ...map,
+    connectors: map.connectors.map((connector) =>
+      connector.id === connectorId
+        ? {
+            ...connector,
+            source_node_id: sourceNodeId,
+            target_node_id: targetNodeId,
+            source_handle: sourceHandle,
+            target_handle: targetHandle,
+          }
+        : connector,
+    ),
+  };
+}
+
+export function setCurrentStateConnectorMarker(
+  map: CurrentStateMap,
+  connectorId: string,
+  marker: 'arrow' | 'none',
+): CurrentStateMap {
+  assertEditable(map);
+  return {
+    ...map,
+    connectors: map.connectors.map((connector) => (connector.id === connectorId ? { ...connector, marker_end: marker } : connector)),
+  };
+}
+
 export function renameCurrentStateConnector(map: CurrentStateMap, connectorId: string, label: string): CurrentStateMap {
   assertEditable(map);
   return {

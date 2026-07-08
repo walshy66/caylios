@@ -19,6 +19,7 @@ export type WorkflowConnector = {
   label: string;
   source_handle: string | null;
   target_handle: string | null;
+  marker_end?: 'arrow' | 'none' | null;
 };
 
 export type WorkflowDraft = {
@@ -146,6 +147,49 @@ export function addWorkflowConnector(
         target_handle: targetHandle,
       },
     ],
+  };
+}
+
+export function reconnectWorkflowConnector(
+  draft: WorkflowDraft,
+  connectorId: string,
+  sourceStepId: string,
+  targetStepId: string,
+  sourceHandle: string | null,
+  targetHandle: string | null,
+  now: string,
+): WorkflowDraft {
+  const stepIds = new Set(draft.steps.map((step) => step.id));
+  if (!stepIds.has(sourceStepId) || !stepIds.has(targetStepId)) {
+    throw new Error('connector requires valid source and target steps');
+  }
+  return {
+    ...draft,
+    updated_at: now,
+    connectors: draft.connectors.map((connector) =>
+      connector.id === connectorId
+        ? {
+            ...connector,
+            source_step_id: sourceStepId,
+            target_step_id: targetStepId,
+            source_handle: sourceHandle,
+            target_handle: targetHandle,
+          }
+        : connector,
+    ),
+  };
+}
+
+export function setWorkflowConnectorMarker(
+  draft: WorkflowDraft,
+  connectorId: string,
+  marker: 'arrow' | 'none',
+  now: string,
+): WorkflowDraft {
+  return {
+    ...draft,
+    updated_at: now,
+    connectors: draft.connectors.map((connector) => (connector.id === connectorId ? { ...connector, marker_end: marker } : connector)),
   };
 }
 

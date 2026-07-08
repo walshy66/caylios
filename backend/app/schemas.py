@@ -261,6 +261,7 @@ class CurrentStateConnector(BaseModel):
     label: str | None = None
     source_handle: str | None = None
     target_handle: str | None = None
+    marker_end: Literal["arrow", "none"] | None = None
 
 
 class CurrentStateComment(BaseModel):
