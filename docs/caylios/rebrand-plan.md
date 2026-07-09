@@ -33,6 +33,8 @@ Rules that bind every slice:
 
 - 2026-07-09 Post-review fixes committed: PRD file deletion confirmed by user and committed (links dropped from constitution + README); wordmark visibility on light surfaces fixed — sidebar wordmark now Midnight Indigo on light / white on dark per brand kit, and BrandLogo fallback switched to mark + Midnight Indigo typographic wordmark because the dash-hero card is white in both themes. (Session 1)
 
+- 2026-07-09 Official exports adopted: Kylie's high-res logo folders (Logos / Logo Icons / Logo Icons Simple) landed in docs/caylios/assets and replaced all interim docx renders in the app. The earlier icon+text composition (a brand rule violation — unapproved lockup arrangement) was removed: sidebar now theme-swaps between the two approved lockup exports, hero fallback uses the Midnight Indigo lockup. Brand immutability made binding in constitution VI, brand-kit.md, caylios AGENTS.md, and root AGENTS.md. (Session 1)
+
 ## Repo folder rename (user-run, outside a Claude session)
 
 1. Close all sessions/editors/terminals using the folder.

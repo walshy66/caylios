@@ -104,13 +104,19 @@ export default function App() {
       <aside className="caylios-sidebar">
         <button type="button" className="caylios-logo" onClick={() => navigate('dashboard')} aria-label="Caylios dashboard">
           <img
-            className="caylios-sidebar-logo"
-            src="/brand/caylios-logo-icon-transparent.png"
+            className="caylios-sidebar-lockup caylios-lockup-on-light"
+            src="/brand/caylios-lockup-light-surface.png"
             alt=""
-            width="96"
-            height="96"
+            width="180"
+            height="180"
           />
-          <span className="caylios-sidebar-wordmark">CAYLIOS</span>
+          <img
+            className="caylios-sidebar-lockup caylios-lockup-on-dark"
+            src="/brand/caylios-lockup-dark-surface.png"
+            alt=""
+            width="180"
+            height="180"
+          />
         </button>
         <nav className="caylios-nav" aria-label="Portal">
           {NAV_SECTIONS.map((section, index) => (

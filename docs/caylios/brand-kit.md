@@ -66,7 +66,15 @@ Rules: use the lower end of size ranges for dense documents, higher end for pres
 
 ## Logo system
 
-Assets extracted from the Brand Kit are in [`assets/`](assets/). These are PNG renders suitable for reference and documentation; production app assets (favicons, headers) should come from original exports (ideally SVG) when the app rebrand happens.
+Official production exports (high-resolution PNG) live in [`assets/`](assets/) in three folders. These are the ONLY shippable logo artwork; the exports are used exactly as supplied.
+
+- **[`assets/Logos/`](assets/Logos/)** — full lockups (icon + wordmark + accent line), 3750×3750:
+  - `Caylios Logo.png` — full colour on solid Midnight Indigo.
+  - `Caylios Logo_Transparent.png` — full colour, white wordmark, transparent — **dark surfaces only**.
+  - `Caylios Logo_Midnight Indigo.png` — single-colour indigo, transparent — **the approved lockup for light/white surfaces**.
+  - `Caylios Logo White.png`, `Caylios Logo_Digital Teal.png`, `Caylios Logo_Electric Mint.png` — approved single-colour variants.
+- **[`assets/Logo Icons/`](assets/Logo%20Icons/)** — logo icons (apps, dashboard, social, favicons), 3200×3200: `Caylios_Icon.png` (on indigo), `_Transparent` (full colour), `_White`, `_Midnight Indigo`, `_Digital Teal`, `_Electric Mint`.
+- **[`assets/Logo Icons Simple/`](assets/Logo%20Icons%20Simple/)** — simplified icons (favicons, small UI, low-res, embroidery): same variant set.
 
 Hierarchy (use the most complete asset the application allows):
 
@@ -74,14 +82,8 @@ Hierarchy (use the most complete asset the application allows):
 Primary Logo → Wordmark → Logo Icon → Simplified Logo Icon
 ```
 
-- **Primary logo** = icon + wordmark + horizontal accent line; elements must not be separated, rearranged, or modified.
-  - [`logo-primary.png`](assets/logo-primary.png) — full colour on Midnight Indigo (website, platform, proposals, presentations, marketing).
-  - [`logo-primary-transparent.png`](assets/logo-primary-transparent.png) — preferred wherever the application controls the background (wordmark is white — invisible on white).
-  - [`logo-reverse-white.png`](assets/logo-reverse-white.png) — all-white, for dark backgrounds (invisible on white).
-  - Single-colour variants: [`logo-midnight-indigo.png`](assets/logo-midnight-indigo.png), [`logo-digital-teal.png`](assets/logo-digital-teal.png), [`logo-electric-mint.png`](assets/logo-electric-mint.png).
-- **Logo icons** (where the full logo is impractical — apps, dashboard, favicons, social): `logo-icon-primary.png`, `logo-icon-transparent.png`, `logo-icon-reverse-white.png`, `logo-icon-midnight-indigo.png`, `logo-icon-digital-teal.png`, `logo-icon-electric-mint.png`.
-- **Simplified logo icons** (favicons, small UI, low-res, embroidery/engraving): `logo-icon-simplified-*.png` in the same six variants.
-- **Wordmarks** are typographic, not image assets: CAYLIOS in Montserrat Regular, ALL CAPS, line height 1.4, letter spacing 0 — White `#FFFFFF` on dark surfaces, Midnight Indigo `#150A32` on light surfaces.
+- **Primary logo** elements (icon, wordmark, accent line) must not be separated, rearranged, or modified.
+- **Wordmarks** (standalone only, where the Brand Kit defines them): CAYLIOS in Montserrat Regular, ALL CAPS, line height 1.4, letter spacing 0 — White `#FFFFFF` on dark surfaces, Midnight Indigo `#150A32` on light surfaces. A typographic wordmark is never combined with the logo icon to imitate a lockup.
 
 ### Primary logo colour anatomy
 
@@ -101,6 +103,12 @@ Primary Logo → Wordmark → Logo Icon → Simplified Logo Icon
 - Do not alter colours outside the approved palette; no gradients, shadows, glows, outlines, or effects.
 - Single-colour assets must use one colour for all elements (White, Midnight Indigo, Digital Teal, or Electric Mint) — never recolour individual elements.
 - Use the version with the greatest clarity and contrast for the application; use simplified icons where small sizes or production methods require reduced detail.
+
+### No composition, no improvisation (binding)
+
+- Never compose, combine, layer, trace, or generate brand elements into arrangements that do not exist as approved exports — including pairing the logo icon with typographic text to imitate a lockup.
+- If no approved asset fits a surface: use the closest approved asset unmodified (e.g. the Midnight Indigo lockup on light surfaces), record the gap in [`asset-gaps.md`](asset-gaps.md), and escalate to the Directors. An improvised interim is never acceptable.
+- New variants, derivative marks, or third-party use require Director approval and land in this kit before they land in code.
 
 ## Domains
 

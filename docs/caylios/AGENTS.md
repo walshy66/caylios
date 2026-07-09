@@ -16,7 +16,8 @@ Owns the four source .docx documents, their distilled markdown contracts, and ex
 - Naming: the brand is **Caylios** (pronounced CAL-ee-oss), never abbreviated. Use **CAYLIOS** as a visual mark / standalone identifier; **Caylios** in prose.
 - Brand colours: Midnight Indigo `#150A32` (primary), Digital Teal `#20B4C9` (secondary), Electric Mint `#15F5BA` (accent, CTAs only), White `#FFFFFF` (neutral). Same palette as the retired STS brand — existing frontend tokens carry over.
 - Domain: `caylios.com` (workspace subdomains `clientname.caylios.com`); `caylios.com.au` planned, not yet active.
-- `assets/` PNGs are extracted from the Brand Kit .docx: reference/documentation quality. Production app assets should come from original exports (ideally SVG); do not treat these renders as final production assets.
+- `assets/` holds the official production logo exports in `Logos/`, `Logo Icons/`, and `Logo Icons Simple/` (high-res PNG, Director-approved), plus docx-extracted icon-set/graphic renders. The three folders are the only shippable logo artwork.
+- Brand assets are immutable: never redraw, trace, recolour, restyle, generate, or compose brand elements into arrangements that don't exist as approved exports (e.g. icon + text imitating a lockup). No approved asset fits? Use the closest approved one unmodified, log the gap in `asset-gaps.md`, escalate to the Directors. Never improvise an interim.
 
 ## Work Guidance
 

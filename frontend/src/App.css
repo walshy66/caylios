@@ -1598,28 +1598,29 @@ span.canvas-shape-label {
   color: var(--caylios-navy);
 }
 
-.caylios-sidebar-logo {
+/* Approved lockup exports only: Midnight Indigo variant on light surfaces,
+   transparent full-colour (white wordmark) variant on dark. Theme swaps
+   between the two approved assets; brand elements are never composed. */
+.caylios-sidebar-lockup {
   display: block;
-  width: 96px;
+  width: 180px;
   max-width: 100%;
   aspect-ratio: 1 / 1;
   height: auto;
   object-fit: contain;
+  margin: -34px auto;
 }
 
-/* Brand kit wordmark colours: Midnight Indigo on light surfaces, white on dark. */
-.caylios-sidebar-wordmark {
+.caylios-lockup-on-dark {
+  display: none;
+}
+
+[data-theme='dark'] .caylios-lockup-on-light {
+  display: none;
+}
+
+[data-theme='dark'] .caylios-lockup-on-dark {
   display: block;
-  margin-top: 6px;
-  font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  color: #150a32;
-}
-
-[data-theme='dark'] .caylios-sidebar-wordmark {
-  color: #fff;
 }
 
 .caylios-nav {
@@ -2250,28 +2251,14 @@ span.canvas-shape-label {
   object-fit: contain;
 }
 
-/* Fallback platform brand for light tenant surfaces: full-colour mark plus
-   Midnight Indigo typographic wordmark (the lockup asset's wordmark is white). */
+/* Fallback platform brand on the (always-white) hero surface: approved
+   Midnight Indigo single-colour lockup export, used unmodified. */
 .brand-logo-default {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.brand-logo-default img {
-  width: min(84px, 9vw);
+  display: block;
+  width: min(170px, 15vw);
   aspect-ratio: 1 / 1;
   height: auto;
   object-fit: contain;
-}
-
-.brand-logo-default-wordmark {
-  font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  color: #150a32;
 }
 
 .settings-logo-preview {

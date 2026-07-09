@@ -132,6 +132,12 @@ Workspace/client branding may override only in tenant-branded contexts and must 
 
 The Caylios name is used per the Brand Kit casing rules (CAYLIOS as a visual mark, Caylios in prose) and is never abbreviated.
 
+Brand assets are immutable (NON-NEGOTIABLE):
+
+- Only Director-approved exports in `docs/caylios/assets/` may ship. Brand elements MUST NOT be redrawn, traced, recoloured, restyled, generated, or composed into arrangements that do not exist as approved exports — including combining the logo icon with text to imitate a lockup.
+- If no approved asset fits a surface, the closest approved asset is used unmodified, the gap is recorded in `docs/caylios/asset-gaps.md`, and the Directors are asked for a proper export. Improvised interims are prohibited; a surface without a suitable approved asset ships without brand art rather than with invented brand art.
+- The brand does not drift: any new variant enters the Brand Kit by Director approval before it enters this repository.
+
 ---
 
 ### VII. Caylios Owns the Workflow Engine

@@ -26,11 +26,12 @@ export default function BrandLogo({ logoUrl, name }: { logoUrl: string | null; n
   }
 
   return (
-    <span className="brand-logo-default">
-      <img src="/brand/caylios-logo-icon-transparent.png" alt="Caylios" width="84" height="84" />
-      <span className="brand-logo-default-wordmark" aria-hidden="true">
-        CAYLIOS
-      </span>
-    </span>
+    <img
+      className="brand-logo-default"
+      src="/brand/caylios-lockup-light-surface.png"
+      alt="Caylios"
+      width="170"
+      height="170"
+    />
   );
 }

@@ -212,6 +212,7 @@ When the user requests a durable behavior change, record it here or in the relev
 - Current State maps use Draft/Approved/Archived lifecycle semantics: drafts are editable, approved maps are immutable, approving a newer draft archives the previous approved version, and archived versions remain in version history rather than the active list.
 - Activepieces is removed (July 2026): the workflow engine is native SimpleTS (workflow definitions, connector adapters, approval-gated push framework). Do not reintroduce embedded/forked third-party workflow engines; the visual workflow builder is native (React Flow) with AI-suggested workflow drafts planned.
 - Canvas quality is client-facing: both Current State and Workflows use the shared canvas foundation in `frontend/src/components/CanvasShapes.tsx` (draw.io-style shapes/interactions from `docs/basic_icons.drawio`); canvas fixes land once in the shared pieces, not per page.
+- Brand is locked (2026-07-09): ship only Director-approved exports from `docs/caylios/assets/`, exactly as supplied. Never compose/redraw/recolour/generate brand elements or pair the icon with text to imitate a lockup. Missing variant → closest approved asset unmodified + log in `docs/caylios/asset-gaps.md` + escalate to Directors. No improvised interims, ever.
 
 ## Child DOX Index
 

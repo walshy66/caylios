@@ -8,9 +8,10 @@ type CayliosLogoProps = {
 
 /**
  * Caylios platform brand slot rendering approved logo assets from the brand
- * kit (docs/caylios/brand-kit.md). The lockup carries a white wordmark, so
- * both variants expect dark platform surfaces. Workspace/client logos should
- * override this only in tenant-branded contexts.
+ * kit (docs/caylios/brand-kit.md) exactly as exported — never composed,
+ * recoloured, or rearranged. 'full' is the transparent full-colour lockup
+ * (white wordmark: dark surfaces only). 'mark' is the transparent logo icon.
+ * Workspace/client logos override this only in tenant-branded contexts.
  */
 export default function CayliosLogo({
   variant = 'full',
@@ -21,7 +22,7 @@ export default function CayliosLogo({
     return (
       <img
         className={className ? `caylios-brand-mark ${className}` : 'caylios-brand-mark'}
-        src="/brand/caylios-logo-icon-transparent.png"
+        src="/brand/caylios-icon.png"
         alt={title}
       />
     );
@@ -30,7 +31,7 @@ export default function CayliosLogo({
   return (
     <img
       className={className ? `caylios-brand-lockup ${className}` : 'caylios-brand-lockup'}
-      src="/brand/caylios-logo-primary-transparent.png"
+      src="/brand/caylios-lockup-dark-surface.png"
       alt={title}
     />
   );
