@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 /**
  * White-label brand slot shown in tenant contexts. Renders the subscriber's
- * configured logo when set; otherwise falls back to the Simple Technology
- * Solutions platform lockup. Also falls back if the configured image fails to
+ * configured logo when set; otherwise falls back to the Caylios
+ * platform lockup. Also falls back if the configured image fails to
  * load.
  */
 export default function BrandLogo({ logoUrl, name }: { logoUrl: string | null; name?: string }) {
@@ -28,10 +28,10 @@ export default function BrandLogo({ logoUrl, name }: { logoUrl: string | null; n
   return (
     <img
       className="brand-logo-default"
-      src="/brand/sts-wordmark-white.png"
-      alt="Simple Technology Solutions"
-      width="190"
-      height="138"
+      src="/brand/caylios-logo-primary-transparent.png"
+      alt="Caylios"
+      width="160"
+      height="160"
     />
   );
 }

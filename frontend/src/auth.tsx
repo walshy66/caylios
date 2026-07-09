@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton, useAuth } from '@clerk/clerk-react';
 import { setAuthHeadersProvider } from './api';
-import STSLogo from './components/STSLogo';
+import CayliosLogo from './components/CayliosLogo';
 import {
   DEV_USER_STORAGE_KEY,
   bearerAuthHeaders,
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         </SignedIn>
         <SignedOut>
           <div className="auth-signed-out">
-            <STSLogo className="auth-brand-logo" />
+            <CayliosLogo className="auth-brand-logo" />
             <h1>Make Work Simple</h1>
             <p>Sign in to access your SimpleTS workspace.</p>
             <SignInButton mode="modal" />

@@ -102,14 +102,15 @@ export default function App() {
   return (
     <div className="sts-layout">
       <aside className="sts-sidebar">
-        <button type="button" className="sts-logo" onClick={() => navigate('dashboard')} aria-label="Simple Technology Solutions dashboard">
+        <button type="button" className="sts-logo" onClick={() => navigate('dashboard')} aria-label="Caylios dashboard">
           <img
             className="sts-sidebar-logo"
-            src="/brand/sts-logo-secondary.png"
-            alt="Simple Technology Solutions"
-            width="112"
-            height="108"
+            src="/brand/caylios-logo-icon-transparent.png"
+            alt=""
+            width="96"
+            height="96"
           />
+          <span className="caylios-sidebar-wordmark">CAYLIOS</span>
         </button>
         <nav className="sts-nav" aria-label="Portal">
           {NAV_SECTIONS.map((section, index) => (
