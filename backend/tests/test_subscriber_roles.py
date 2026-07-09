@@ -8,12 +8,12 @@ from app import db
 from app.main import app
 from app.models import DocumentDeletionStatus, WorkflowRunStatus, WorkspaceRole
 
-HOST = {"host": "clienta.simplets.com.au"}
+HOST = {"host": "clienta.caylios.com"}
 
 
 def use_temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "simplets.sqlite3")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "caylios.sqlite3")
 
 
 def as_user(user_id: str) -> dict[str, str]:

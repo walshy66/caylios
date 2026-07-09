@@ -8,7 +8,7 @@ primary_region = "syd"
 
 [env]
   STS_AUTH_MODE = "clerk"
-  STS_BASE_DOMAIN = "simplets.com.au"
+  STS_BASE_DOMAIN = "caylios.com"
   STS_EXTRACTION_PROVIDER = "claude"
 
 # Secrets (set via `fly secrets set`, never in this file):

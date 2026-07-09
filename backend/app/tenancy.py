@@ -17,7 +17,7 @@ DEFAULT_DEV_SUBDOMAIN = "coachcw"
 
 
 def base_domain() -> str:
-    return os.environ.get("STS_BASE_DOMAIN", "simplets.com.au").lower()
+    return os.environ.get("STS_BASE_DOMAIN", "caylios.com").lower()
 
 
 def now_iso() -> str:

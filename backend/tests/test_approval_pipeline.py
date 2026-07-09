@@ -11,13 +11,13 @@ from app.connections import upsert_connection
 from app.intake import get_invoice_drive_uploader
 from app.main import app
 
-HOST = {"host": "clienta.simplets.com.au"}
+HOST = {"host": "clienta.caylios.com"}
 ADMIN = {"x-sts-user": "platform-admin", **HOST}
 
 
 def use_temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "simplets.sqlite3")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "caylios.sqlite3")
 
 
 @pytest.fixture(autouse=True)
@@ -151,7 +151,7 @@ def test_successful_approval_purges_everything_but_audit(monkeypatch, tmp_path):
         assert sensitive not in audit_text
 
     # Nothing sensitive left anywhere in the database.
-    raw_db = (tmp_path / "data" / "simplets.sqlite3").read_bytes()
+    raw_db = (tmp_path / "data" / "caylios.sqlite3").read_bytes()
     assert b"123456782" not in raw_db
 
 

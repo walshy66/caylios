@@ -10,7 +10,7 @@ from app.main import app
 
 def use_temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "simplets.sqlite3")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "caylios.sqlite3")
 
 
 def test_document_upload_creates_temporary_file_metadata_and_workflow_run(monkeypatch, tmp_path):

@@ -5,16 +5,16 @@ from fastapi.testclient import TestClient
 from app import db
 from app.main import app
 
-HOST_A = {"host": "clienta.simplets.com.au", "x-sts-user": "alice-admin"}
-HOST_A_REVIEWER = {"host": "clienta.simplets.com.au", "x-sts-user": "alice-reviewer"}
-HOST_A_OPERATOR = {"host": "clienta.simplets.com.au", "x-sts-user": "alice-operator"}
-HOST_A_SUBMITTER = {"host": "clienta.simplets.com.au", "x-sts-user": "client-submit-only"}
-HOST_B = {"host": "clientb.simplets.com.au", "x-sts-user": "bob-admin"}
+HOST_A = {"host": "clienta.caylios.com", "x-sts-user": "alice-admin"}
+HOST_A_REVIEWER = {"host": "clienta.caylios.com", "x-sts-user": "alice-reviewer"}
+HOST_A_OPERATOR = {"host": "clienta.caylios.com", "x-sts-user": "alice-operator"}
+HOST_A_SUBMITTER = {"host": "clienta.caylios.com", "x-sts-user": "client-submit-only"}
+HOST_B = {"host": "clientb.caylios.com", "x-sts-user": "bob-admin"}
 
 
 def use_temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "simplets.sqlite3")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "caylios.sqlite3")
 
 
 def seed_workspaces():

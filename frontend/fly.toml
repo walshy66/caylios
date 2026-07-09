@@ -1,5 +1,5 @@
 # Fly.io config for the SimpleTS React frontend (COA-272).
-# Serves all subscriber subdomains (wildcard cert on *.simplets.com.au).
+# Serves all subscriber subdomains (wildcard cert on *.caylios.com).
 app = "sts-web"
 primary_region = "syd"
 

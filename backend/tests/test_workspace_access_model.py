@@ -10,7 +10,7 @@ from app.schemas import WorkspaceFeatureFlag, WorkspaceUser
 
 def use_temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "simplets.sqlite3")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "caylios.sqlite3")
 
 
 def table_columns(conn: sqlite3.Connection, table_name: str) -> list[str]:

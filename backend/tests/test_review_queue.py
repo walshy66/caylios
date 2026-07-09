@@ -12,7 +12,7 @@ from app.models import DocumentDeletionStatus, WorkflowRunStatus
 
 def use_temp_db(monkeypatch, tmp_path):
     monkeypatch.setattr(db, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "simplets.sqlite3")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "caylios.sqlite3")
 
 
 def seed_review_run(tmp_path, deleted=False):

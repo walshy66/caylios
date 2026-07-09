@@ -12,7 +12,7 @@ from app import clerk, db
 from app.main import app
 
 ISSUER = "https://sts-test.clerk.accounts.dev"
-HOST = {"host": "clienta.simplets.com.au"}
+HOST = {"host": "clienta.caylios.com"}
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def rsa_keys():
 @pytest.fixture
 def clerk_mode(monkeypatch, tmp_path, rsa_keys):
     monkeypatch.setattr(db, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "simplets.sqlite3")
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "data" / "caylios.sqlite3")
     monkeypatch.setenv("STS_AUTH_MODE", "clerk")
     monkeypatch.setenv("CLERK_ISSUER", ISSUER)
     monkeypatch.delenv("CLERK_AUTHORIZED_PARTIES", raising=False)
@@ -112,12 +112,12 @@ def test_dev_header_is_ignored_in_clerk_mode(clerk_mode):
 
 
 def test_unauthorized_party_is_401(clerk_mode, rsa_keys, monkeypatch):
-    monkeypatch.setenv("CLERK_AUTHORIZED_PARTIES", "https://coachcw.simplets.com.au")
+    monkeypatch.setenv("CLERK_AUTHORIZED_PARTIES", "https://coachcw.caylios.com")
     private_key, _ = rsa_keys
     with TestClient(app) as client:
         allowed = client.get(
             "/workflow-runs/review-queue",
-            headers=bearer(mint(private_key, azp="https://coachcw.simplets.com.au")),
+            headers=bearer(mint(private_key, azp="https://coachcw.caylios.com")),
         )
         denied = client.get(
             "/workflow-runs/review-queue",
