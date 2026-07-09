@@ -10,7 +10,7 @@ Tracks every app surface using an **interim** brand asset (PNG render extracted 
 | Apple touch icon (`frontend/index.html`) | `public/brand/caylios-touch-icon.png` (logo icon on Midnight Indigo) | Interim | 180×180+ export of logo icon on solid Midnight Indigo |
 | Sidebar mark + wordmark (`App.tsx`) | `public/brand/caylios-logo-icon-transparent.png` + typographic CAYLIOS | Interim (mark) / Final (wordmark is typographic per brand kit) | SVG logo icon, transparent |
 | Auth page lockup (`auth.tsx` via `CayliosLogo`) | `public/brand/caylios-logo-primary-transparent.png` | Interim | SVG primary logo, transparent |
-| Tenant fallback logo (`BrandLogo.tsx`) | `public/brand/caylios-logo-primary-transparent.png` | Interim | Same as above |
+| Tenant fallback logo (`BrandLogo.tsx`) | `public/brand/caylios-logo-icon-transparent.png` + typographic CAYLIOS (Midnight Indigo — sits on white surfaces) | Interim (mark) / Final (wordmark) | SVG logo icon, transparent |
 
 ## Known constraints
 

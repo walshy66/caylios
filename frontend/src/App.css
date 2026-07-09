@@ -1607,6 +1607,7 @@ span.canvas-shape-label {
   object-fit: contain;
 }
 
+/* Brand kit wordmark colours: Midnight Indigo on light surfaces, white on dark. */
 .caylios-sidebar-wordmark {
   display: block;
   margin-top: 6px;
@@ -1614,6 +1615,10 @@ span.canvas-shape-label {
   font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.14em;
+  color: #150a32;
+}
+
+[data-theme='dark'] .caylios-sidebar-wordmark {
   color: #fff;
 }
 
@@ -2245,12 +2250,28 @@ span.canvas-shape-label {
   object-fit: contain;
 }
 
+/* Fallback platform brand for light tenant surfaces: full-colour mark plus
+   Midnight Indigo typographic wordmark (the lockup asset's wordmark is white). */
 .brand-logo-default {
-  display: block;
-  width: min(160px, 14vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-logo-default img {
+  width: min(84px, 9vw);
   aspect-ratio: 1 / 1;
   height: auto;
   object-fit: contain;
+}
+
+.brand-logo-default-wordmark {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: #150a32;
 }
 
 .settings-logo-preview {

@@ -31,6 +31,8 @@ Rules that bind every slice:
 
 - 2026-07-09 Stragglers committed: sts.workflow-drafts storage key, x-caylios-workspace admin header, caylios-encryption.key dev key filename (existing local dev connector tokens become undecryptable — data/ is disposable), clerk.py comment, test fixture URLs. Fly app names sts-api/sts-web left for slice 4b. (Session 1)
 
+- 2026-07-09 Post-review fixes committed: PRD file deletion confirmed by user and committed (links dropped from constitution + README); wordmark visibility on light surfaces fixed — sidebar wordmark now Midnight Indigo on light / white on dark per brand kit, and BrandLogo fallback switched to mark + Midnight Indigo typographic wordmark because the dash-hero card is white in both themes. (Session 1)
+
 ## Repo folder rename (user-run, outside a Claude session)
 
 1. Close all sessions/editors/terminals using the folder.

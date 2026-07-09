@@ -282,7 +282,6 @@ Intentional deviations from this constitution MUST be documented with rationale 
 ## Related Documents
 
 - [`README.md`](README.md) — project overview and build direction.
-- [`docs/prd-sts-orchestration-platform.md`](docs/prd-sts-orchestration-platform.md) — product PRD and implementation decisions.
 - [`docs/caylios/philosophy.md`](docs/caylios/philosophy.md) — the 15 Caylios design principles behind this constitution.
 - [`docs/caylios/brand-kit.md`](docs/caylios/brand-kit.md) — canonical brand contract: naming, messaging, palette, typography, logo system.
 - [`docs/caylios/visual-language.md`](docs/caylios/visual-language.md) — visual execution: layout, hierarchy, diagrams, shape legend, icons, components.

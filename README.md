@@ -136,10 +136,6 @@ This repository should be treated as a clean build toward the new Caylios platfo
 
 The previous local AI coding-agent session dashboard has been removed from the codebase entirely and must not be reintroduced.
 
-## Related planning docs
-
-- [`docs/prd-sts-orchestration-platform.md`](docs/prd-sts-orchestration-platform.md) — current product PRD and implementation decisions
-
 ## Getting Started
 
 ### Prerequisites
