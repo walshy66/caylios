@@ -1,8 +1,8 @@
-# SimpleTS Constitution (v0.2.0)
+# Caylios Constitution (v0.3.0)
 
 ## Purpose, Users & Scope
 
-SimpleTS is a white-label client portal and workflow orchestration platform for professional services businesses.
+Caylios (formerly SimpleTS) is a white-label client portal and workflow orchestration platform for professional services businesses. Its strategic idea: every business has hidden capacity — Caylios unlocks it by removing operational friction and improving how work moves through a business. Tagline: Make Work Simple.
 
 Its product promise is:
 
@@ -10,18 +10,20 @@ Its product promise is:
 Submit once → review once → distribute everywhere
 ```
 
-SimpleTS helps subscribers stop double-handling client data across multiple business applications. End-clients submit information once through a branded portal; subscriber staff review and approve it; SimpleTS distributes the approved data to configured third-party systems.
+Caylios helps subscribers stop double-handling client data across multiple business applications. End-clients submit information once through a branded portal; subscriber staff review and approve it; Caylios distributes the approved data to configured third-party systems.
+
+Rebrand status: the application/code rename from SimpleTS is in progress; "STS"/"SimpleTS" in code identifiers refers to the same platform. All new user-facing work uses the Caylios name per `docs/caylios/brand-kit.md`.
 
 ### Primary users
 
 - **End-clients** — submit forms and documents through a branded subscriber portal.
 - **Subscriber staff** — review, correct, approve, and monitor submitted data.
 - **Subscriber admins** — manage users, connected apps, workflow configuration, and branding.
-- **STS platform admins** — manage workspaces and platform operations.
+- **Caylios platform admins** — manage workspaces and platform operations.
 
 ### Scope of this repo
 
-This repository governs the SimpleTS operational platform, including:
+This repository governs the Caylios operational platform, including:
 
 - Branded subscriber portals on workspace subdomains.
 - Structured web-form data intake.
@@ -37,6 +39,19 @@ The previous local AI coding-agent dashboard direction is obsolete and MUST NOT 
 
 ---
 
+## Design Philosophy
+
+The Caylios Philosophy ([`docs/caylios/philosophy.md`](docs/caylios/philosophy.md)) is the thinking behind this constitution. Where a decision needs a tiebreaker, the philosophy supplies the default direction; this constitution supplies the binding rules. Its core stances:
+
+- **Make Work Simple** — every system, process, and interaction should reduce the effort required to complete meaningful work.
+- **Simplicity Before Complexity** — the simplest solution that achieves the required outcome is preferred; complexity must earn its way in with clear, measurable value.
+- **One Source of Truth** — information has one authoritative location; duplication creates uncertainty. (Grounds Principle II: pipe, not a database.)
+- **Design for Reuse** — create once, reuse many times, before building anything new.
+- **Keep the Human in Control** — people remain accountable for outcomes; technology increases visibility and confidence without removing ownership. (Grounds Principle III: human approval before writeback.)
+- **Everything Should Earn Its Place** — every feature, field, workflow, and report exists because it creates value; otherwise simplify or remove it.
+
+---
+
 ## Core Principles
 
 ### I. Submit Once, Review Once, Distribute Everywhere (NON-NEGOTIABLE)
@@ -47,11 +62,11 @@ Work MUST anchor to an explicit user journey and observable success criteria. Fe
 
 ---
 
-### II. STS Is a Pipe, Not a Database (NON-NEGOTIABLE)
+### II. Caylios Is a Pipe, Not a Database (NON-NEGOTIABLE)
 
-SimpleTS MUST NOT become a permanent store for end-client PII, financial data, or uploaded documents.
+Caylios MUST NOT become a permanent store for end-client PII, financial data, or uploaded documents.
 
-STS MAY store:
+Caylios MAY store:
 
 - Workspace configuration.
 - User/account metadata required for access control.
@@ -60,7 +75,7 @@ STS MAY store:
 - Operational execution status.
 - Minimal audit records.
 
-STS MUST purge submitted field data, extracted data, and uploaded source files after successful approval and distribution to all required destinations.
+Caylios MUST purge submitted field data, extracted data, and uploaded source files after successful approval and distribution to all required destinations.
 
 Minimal audit records MUST NOT include submitted field values, extracted values, document contents, or raw PII/financial data.
 
@@ -91,7 +106,7 @@ Workspace-scoped data includes:
 
 All backend reads and writes MUST be workspace-scoped. A user authenticated to workspace A MUST NOT be able to access workspace B data through UI state, API parameters, connector configuration, subdomain routing, or workflow execution.
 
-Subdomain routing such as `clientname.simplets.com.au` MUST resolve to exactly one workspace.
+Subdomain routing such as `clientname.caylios.com` MUST resolve to exactly one workspace.
 
 ---
 
@@ -109,20 +124,24 @@ The frontend MUST NOT infer, repair, bypass, or silently override backend author
 
 ---
 
-### VI. STS Brand Hierarchy
+### VI. Caylios Brand Hierarchy
 
-Simple Technology Solutions branding is the authoritative default for platform-owned experiences. Workspace/client branding may override only in tenant-branded contexts and must not weaken platform authority, data safety, approval, retention, or workspace isolation rules.
+Caylios branding, as defined in [`docs/caylios/brand-kit.md`](docs/caylios/brand-kit.md) (identity/naming) and executed per [`docs/caylios/visual-language.md`](docs/caylios/visual-language.md), is the authoritative default for platform-owned experiences. Where the two documents overlap, the Brand Kit wins on identity and naming; the Visual Language Guide wins on execution.
+
+Workspace/client branding may override only in tenant-branded contexts and must not weaken platform authority, data safety, approval, retention, or workspace isolation rules.
+
+The Caylios name is used per the Brand Kit casing rules (CAYLIOS as a visual mark, Caylios in prose) and is never abbreviated.
 
 ---
 
-### VII. SimpleTS Owns the Workflow Engine
+### VII. Caylios Owns the Workflow Engine
 
-Workflow definition, visualization, and execution are native SimpleTS capabilities. No third-party workflow engine (embedded, forked, or hosted) may sit between approval and distribution, because the approval gate, retention rules, and workspace isolation are enforced by the SimpleTS backend and MUST NOT be delegated.
+Workflow definition, visualization, and execution are native Caylios capabilities. No third-party workflow engine (embedded, forked, or hosted) may sit between approval and distribution, because the approval gate, retention rules, and workspace isolation are enforced by the Caylios backend and MUST NOT be delegated.
 
 - A workflow definition is workspace-scoped configuration: a trigger (intake source), the mandatory human approval gate, and destination steps with field mappings.
 - The approval gate is structural — workflow definitions MUST NOT be able to express a path from intake to destination that bypasses review.
-- Connectors are first-class STS adapters: direct API integrations owned in this repo, each declaring its provider, OAuth scopes, actions, and field schema.
-- Execution is the STS push framework: per-destination status, safe retry, and retain-until-resolved failure handling.
+- Connectors are first-class Caylios adapters: direct API integrations owned in this repo, each declaring its provider, OAuth scopes, actions, and field schema.
+- Execution is the Caylios push framework: per-destination status, safe retry, and retain-until-resolved failure handling.
 - Workflow-engine scope MUST stay minimal: no general-purpose DAG engine, scheduler, or queue infrastructure unless an explicit product requirement justifies it.
 
 ---
@@ -199,13 +218,13 @@ Document upload, OCR/extraction, advanced workflow templates, and broader connec
 
 The current platform direction is:
 
-- **Frontend:** React-based STS UI and branded client portal.
-- **Backend:** FastAPI service layer for STS-specific APIs and orchestration boundaries.
-- **Workflow engine:** native — STS workflow definitions, connector adapters, and the approval-gated push framework in the FastAPI backend.
+- **Frontend:** React-based Caylios UI and branded client portal.
+- **Backend:** FastAPI service layer for Caylios-specific APIs and orchestration boundaries.
+- **Workflow engine:** native — Caylios workflow definitions, connector adapters, and the approval-gated push framework in the FastAPI backend.
 - **Database:** Postgres for workspace configuration, workflow metadata, encrypted OAuth tokens, execution metadata, and minimal audit records.
 - **Auth:** Clerk for subscriber staff, end-clients, and platform admins.
 - **Hosting:** Fly.io, Sydney region, Docker-native deployment.
-- **Domains:** wildcard subscriber subdomains such as `clientname.simplets.com.au`.
+- **Domains:** `caylios.com` with wildcard subscriber subdomains such as `clientname.caylios.com`. (`caylios.com.au` is planned but not yet active; the former `simplets.com.au` is retired.)
 - **AI extraction:** Claude API called directly from the backend extraction module.
 
 Major deviations from this stack MUST be documented before implementation.
@@ -227,7 +246,7 @@ Additional connectors are allowed when they support a real subscriber workflow a
 
 ## UI & Product Experience Requirements
 
-- Subscribers and end-clients MUST experience the product as SimpleTS; third-party tooling MUST NOT be visible in the product experience.
+- Subscribers and end-clients MUST experience the product as Caylios; third-party tooling MUST NOT be visible in the product experience.
 - Subscriber portals MUST support workspace branding.
 - Review screens MUST make flagged, missing, low-confidence, or failed fields obvious.
 - Approval actions MUST be explicit and hard to trigger accidentally.
@@ -264,3 +283,7 @@ Intentional deviations from this constitution MUST be documented with rationale 
 
 - [`README.md`](README.md) — project overview and build direction.
 - [`docs/prd-sts-orchestration-platform.md`](docs/prd-sts-orchestration-platform.md) — product PRD and implementation decisions.
+- [`docs/caylios/philosophy.md`](docs/caylios/philosophy.md) — the 15 Caylios design principles behind this constitution.
+- [`docs/caylios/brand-kit.md`](docs/caylios/brand-kit.md) — canonical brand contract: naming, messaging, palette, typography, logo system.
+- [`docs/caylios/visual-language.md`](docs/caylios/visual-language.md) — visual execution: layout, hierarchy, diagrams, shape legend, icons, components.
+- [`docs/caylios/icon-standard.md`](docs/caylios/icon-standard.md) — icon construction rules.

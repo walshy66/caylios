@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Canonical Simple Technology Solutions brand assets and implementation-facing brand guidance.
+Retired Simple Technology Solutions brand assets, kept for history. **Superseded by `docs/caylios/`** — the company and platform are rebranded Caylios (July 2026), and `docs/caylios/brand-kit.md` is now the canonical developer-facing brand contract.
 
 ## Ownership
 
@@ -10,22 +10,16 @@ Owns `docs/branding/brand-kit.md`, source brand-kit documents, source logo/backg
 
 ## Local Contracts
 
-- `brand-kit.md` is the authoritative developer-facing brand contract.
-- Source assets in this folder remain canonical visual references unless superseded by an explicitly approved newer brand kit.
-- STS branding is the binding default for platform-owned experiences; workspace/client branding may override only in explicitly tenant-branded contexts.
-- Do not recolour, stretch, rotate, distort, or arbitrarily rescale STS logos.
-- Generated app assets must preserve the approved colours: Midnight Indigo `#150A32`, Digital Teal `#20B4C9`, Electric Mint `#15F5BA`, and White `#FFFFFF`.
+- This folder is historical: do not base new brand work on it. Use `docs/caylios/` instead.
+- STS logos and `brand-kit.md` here describe the retired brand; the colour palette (Midnight Indigo `#150A32`, Digital Teal `#20B4C9`, Electric Mint `#15F5BA`, White `#FFFFFF`) carried over unchanged to Caylios.
 
 ## Work Guidance
 
-- Update `brand-kit.md` whenever source brand assets or brand rules change.
-- Keep implementation guidance concise and usable by frontend/backend/docs agents.
-- Record generated asset paths in `brand-kit.md` when adding or replacing app-ready files.
-- Prefer true vector source assets when available; do not invent vector shapes if exact source files exist.
+- No new work lands here. If an asset in this folder is still referenced by the app, migrate the reference to a Caylios asset as part of the rebrand.
 
 ## Verification
 
-Review brand docs and generated assets against the source brand kit and PNGs in this folder.
+None — folder is frozen.
 
 ## Child DOX Index
 

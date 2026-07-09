@@ -2,11 +2,15 @@
 
 ## Project identity
 
-SimpleTS is a white-label client portal and workflow orchestration platform for professional services businesses.
+**Caylios** (pronounced CAL-ee-oss; formerly SimpleTS) is a white-label client portal and workflow orchestration platform for professional services businesses. Tagline: Make Work Simple. Strategic idea: every business has hidden capacity — Caylios unlocks it.
 
 Core promise:
 
 > Submit once → review once → distribute everywhere
+
+Naming rules: Caylios is always one word, never abbreviated. Use **CAYLIOS** as a visual mark or standalone identifier (logos, dashboard headers, slide titles); **Caylios** in prose. See `docs/caylios/brand-kit.md`.
+
+Rebrand status: the docs layer is renamed; the application/code rename (folder, packages, identifiers, domains → `caylios.com`) is pending, so code may still say SimpleTS/simplets. New user-facing work should say Caylios.
 
 The previous local AI coding-agent/dashboard direction is obsolete and MUST NOT guide new work.
 
@@ -119,7 +123,7 @@ Bug fixes affecting auth, data safety, deletion, connector execution, tenant iso
 
 When product or architecture behavior changes, update relevant docs in `docs/` and/or `constitution.md`.
 
-Follow `docs/branding/brand-kit.md` as the canonical developer-facing brand contract. Simple Technology Solutions branding is the binding default for platform-owned experiences; workspace/client branding may override only in explicitly tenant-branded contexts.
+Follow `docs/caylios/brand-kit.md` as the canonical developer-facing brand contract, with `docs/caylios/visual-language.md` for execution (layouts, diagrams, shape legend, icons) and `docs/caylios/philosophy.md` for design doctrine. Caylios branding is the binding default for platform-owned experiences; workspace/client branding may override only in explicitly tenant-branded contexts. `docs/branding/` (Simple Technology Solutions) is retired.
 
 Do not reintroduce the obsolete local AI coding-agent dashboard direction.
 

@@ -25,4 +25,5 @@ Review affected docs for contradictions with `constitution.md` and `README.md`.
 
 ## Child DOX Index
 
-- `branding/AGENTS.md` — Simple Technology Solutions brand kit, source logo/background assets, and generated app/public brand asset inventory.
+- `caylios/AGENTS.md` — Canonical Caylios brand, philosophy, and visual-system documentation (source .docx files, distilled markdown contracts, extracted brand assets).
+- `branding/AGENTS.md` — Retired Simple Technology Solutions brand assets, kept for history; superseded by `caylios/`.
