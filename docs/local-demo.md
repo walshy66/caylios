@@ -7,14 +7,14 @@ This demo path uses only `demo/synthetic-client-intake.txt`. It contains fiction
 Backend:
 
 ```powershell
-cd C:\Users\camer\Documents\simplets\backend
+cd C:\Users\camer\Documents\caylios\backend
 py -3.13 -m uvicorn app.main:app --reload
 ```
 
 Frontend:
 
 ```powershell
-cd C:\Users\camer\Documents\simplets\frontend
+cd C:\Users\camer\Documents\caylios\frontend
 npm run dev
 ```
 

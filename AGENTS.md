@@ -1,4 +1,4 @@
-# SimpleTS Agent Instructions
+# Caylios Agent Instructions
 
 ## Project identity
 
@@ -10,7 +10,7 @@ Core promise:
 
 Naming rules: Caylios is always one word, never abbreviated. Use **CAYLIOS** as a visual mark or standalone identifier (logos, dashboard headers, slide titles); **Caylios** in prose. See `docs/caylios/brand-kit.md`.
 
-Rebrand status: docs and application code are renamed (see `docs/caylios/rebrand-plan.md`). Still outstanding: the repo folder name (`simplets`), the `STS_*` env var family (coordinated rename — deployed Fly secrets depend on the old names; see plan slice 4b), and final SVG brand assets (`docs/caylios/asset-gaps.md`).
+Rebrand status: docs, application code, and repo folder are renamed (see `docs/caylios/rebrand-plan.md`). Still outstanding: the `STS_*` env var family (coordinated rename — deployed Fly secrets depend on the old names; see plan slice 4b), and final SVG brand assets (`docs/caylios/asset-gaps.md`).
 
 The previous local AI coding-agent/dashboard direction is obsolete and MUST NOT guide new work.
 
@@ -21,7 +21,7 @@ Follow `constitution.md` for all product, architecture, and implementation decis
 Non-negotiables:
 
 - Human approval is mandatory before any writeback to destination systems.
-- SimpleTS is a pipe, not a permanent database.
+- Caylios is a pipe, not a permanent database.
 - Submitted field data, extracted data, and uploaded files must be purged after successful approval and distribution.
 - Minimal audit records must not contain raw PII, submitted values, extracted values, uploaded document contents, or OAuth tokens.
 - Workspace isolation is mandatory for all backend reads/writes and UI behavior.
@@ -210,15 +210,15 @@ When the user requests a durable behavior change, record it here or in the relev
 - Current State V1 should prioritise simplicity: all workspace staff can create/import/edit/approve Current State drafts until configurable approval permissions are introduced; submit-only/non-staff users remain blocked.
 - Current State process-map import replaces invoice-style ingestion for workflow mapping: import is available only from Current State, creates a new draft map, uses temporary source files, displays sanitised filenames for operator usability, and starts with supported process-map file types under 25 MB.
 - Current State maps use Draft/Approved/Archived lifecycle semantics: drafts are editable, approved maps are immutable, approving a newer draft archives the previous approved version, and archived versions remain in version history rather than the active list.
-- Activepieces is removed (July 2026): the workflow engine is native SimpleTS (workflow definitions, connector adapters, approval-gated push framework). Do not reintroduce embedded/forked third-party workflow engines; the visual workflow builder is native (React Flow) with AI-suggested workflow drafts planned.
+- Activepieces is removed (July 2026): the workflow engine is native Caylios (workflow definitions, connector adapters, approval-gated push framework). Do not reintroduce embedded/forked third-party workflow engines; the visual workflow builder is native (React Flow) with AI-suggested workflow drafts planned.
 - Canvas quality is client-facing: both Current State and Workflows use the shared canvas foundation in `frontend/src/components/CanvasShapes.tsx` (draw.io-style shapes/interactions from `docs/basic_icons.drawio`); canvas fixes land once in the shared pieces, not per page.
 - Brand is locked (2026-07-09): ship only Director-approved exports from `docs/caylios/assets/`, exactly as supplied. Never compose/redraw/recolour/generate brand elements or pair the icon with text to imitate a lockup. Missing variant → closest approved asset unmodified + log in `docs/caylios/asset-gaps.md` + escalate to Directors. No improvised interims, ever.
 
 ## Child DOX Index
 
 - `backend/AGENTS.md` — FastAPI service layer, backend app modules, API authority, auth/tenancy, approvals, connectors, retention, and backend tests.
-- `frontend/AGENTS.md` — React/Vite SimpleTS UI, frontend models/tests, Clerk-aware views, review/intake UX, and embedded workflow access.
-- `docs/AGENTS.md` — Durable SimpleTS product, architecture, planning, and decision documentation.
+- `frontend/AGENTS.md` — React/Vite Caylios UI, frontend models/tests, Clerk-aware views, review/intake UX, and embedded workflow access.
+- `docs/AGENTS.md` — Durable Caylios product, architecture, planning, and decision documentation.
 - `data/AGENTS.md` — Local runtime/upload artifacts and disposable development/demo data.
 - `demo/AGENTS.md` — Synthetic demo scenarios and demo-only assets.
 - `ReGroup Solutions Templates/AGENTS.md` — ReGroup scenario templates/reference material.

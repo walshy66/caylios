@@ -2,7 +2,7 @@ Synthetic Demo Document
 
 Client: Example Client
 Contact: example.client@example.test
-Scenario: Local demonstration of SimpleTS document workflow.
+Scenario: Local demonstration of Caylios document workflow.
 
 Meeting Notes:
 Example Client asked the operations team to summarize recent onboarding steps and identify follow-up work before approving a mock destination update.

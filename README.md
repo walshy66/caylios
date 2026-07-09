@@ -76,7 +76,7 @@ Planned platform foundations:
 - **Database:** Postgres for workspace configuration, workflow metadata, encrypted OAuth tokens, and minimal audit records
 - **Auth:** Clerk for subscriber staff, end-clients, and platform admins
 - **Hosting:** Fly.io, Sydney region, Docker-native deployment
-- **Domains:** wildcard subscriber subdomains such as `clientname.simplets.com.au`
+- **Domains:** wildcard subscriber subdomains such as `clientname.caylios.com`
 - **AI extraction:** Claude API called directly from the backend extraction module
 
 ## Workflow engine

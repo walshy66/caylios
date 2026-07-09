@@ -7,7 +7,7 @@ Source assets: `docs/branding/Brand Kit_V1.0.docx` and PNG files in `docs/brandi
 
 - Company/platform brand: **Simple Technology Solutions**.
 - Acronym/monogram: **STS**.
-- Product/app name: **SimpleTS**.
+- Product/app name: **Caylios**.
 - STS branding is the required default for platform-owned UI, docs, generated assets, and public-facing copy.
 - Workspace/client branding may override STS only in explicitly tenant-branded contexts, such as a subscriber workspace logo, client portal styling, or future workspace theme settings.
 - Workspace/client branding must not obscure backend authority, workspace isolation, approval state, connector state, data safety, retention, or operational failure states.
