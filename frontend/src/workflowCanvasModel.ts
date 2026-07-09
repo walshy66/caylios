@@ -33,7 +33,7 @@ export type WorkflowDraft = {
 
 export type WorkflowStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
-export const WORKFLOW_DRAFTS_STORAGE_KEY = 'sts.workflow-drafts.v1';
+export const WORKFLOW_DRAFTS_STORAGE_KEY = 'caylios.workflow-drafts.v1';
 
 function nextLocalId(prefix: string, existingIds: string[]): string {
   let index = existingIds.length + 1;

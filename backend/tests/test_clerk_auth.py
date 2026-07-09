@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from app import clerk, db
 from app.main import app
 
-ISSUER = "https://sts-test.clerk.accounts.dev"
+ISSUER = "https://caylios-test.clerk.accounts.dev"
 HOST = {"host": "clienta.caylios.com"}
 
 

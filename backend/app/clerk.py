@@ -1,7 +1,7 @@
 """Clerk session-token verification (COA-274).
 
 Active when STS_AUTH_MODE=clerk. Verifies the Authorization bearer token as a
-Clerk session JWT (RS256) against the instance JWKS, then maps it to the STS
+Clerk session JWT (RS256) against the instance JWKS, then maps it to the Caylios
 CurrentUser identity. Workspace membership/roles remain Caylios-owned (workspace_users).
 
 Required environment:

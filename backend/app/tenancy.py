@@ -95,7 +95,7 @@ def resolve_workspace(request: Request, conn: sqlite3.Connection = Depends(get_c
         if host not in DEV_HOSTS:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="unknown workspace host")
         subdomain = (
-            request.headers.get("x-sts-workspace")
+            request.headers.get("x-caylios-workspace")
             or os.environ.get("STS_DEV_WORKSPACE", DEFAULT_DEV_SUBDOMAIN)
         ).strip().lower()
         row = workspace_by_subdomain(conn, subdomain)

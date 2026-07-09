@@ -143,7 +143,7 @@ def test_authorize_url_includes_client_id_and_state(monkeypatch):
     monkeypatch.setenv("STS_HUBSPOT_CLIENT_ID", "hub-client")
     monkeypatch.setenv("STS_HUBSPOT_CLIENT_SECRET", "hub-secret")
 
-    url = build_authorize_url("hubspot", redirect_uri="https://sts.example/callback", state="ws:nonce")
+    url = build_authorize_url("hubspot", redirect_uri="https://caylios.example/callback", state="ws:nonce")
 
     assert url.startswith("https://app.hubspot.com/oauth/authorize?")
     assert "client_id=hub-client" in url
@@ -154,7 +154,7 @@ def test_authorize_url_without_credentials_fails(monkeypatch):
     monkeypatch.delenv("STS_XERO_CLIENT_ID", raising=False)
 
     with pytest.raises(DestinationError, match="credentials are not configured"):
-        build_authorize_url("xero", redirect_uri="https://sts.example/callback", state="s")
+        build_authorize_url("xero", redirect_uri="https://caylios.example/callback", state="s")
 
 
 def test_code_exchange_returns_token_fields(monkeypatch):
@@ -178,7 +178,7 @@ def test_code_exchange_returns_token_fields(monkeypatch):
         ]
     )
 
-    tokens = exchange_authorization_code("google_drive", "auth-code", "https://sts.example/cb", client=client)
+    tokens = exchange_authorization_code("google_drive", "auth-code", "https://caylios.example/cb", client=client)
 
     assert tokens["access_token"] == "fresh-access"
     assert tokens["refresh_token"] == "fresh-refresh"

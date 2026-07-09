@@ -43,7 +43,7 @@ def now_iso() -> str:
 
 
 def _dev_key_path() -> str:
-    return str(db.DATA_DIR / "sts-encryption.key")
+    return str(db.DATA_DIR / "caylios-encryption.key")
 
 
 def encryption_key() -> bytes:
