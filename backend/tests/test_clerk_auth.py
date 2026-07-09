@@ -106,7 +106,7 @@ def test_wrong_issuer_is_401(clerk_mode, rsa_keys):
 
 def test_dev_header_is_ignored_in_clerk_mode(clerk_mode):
     with TestClient(app) as client:
-        response = client.get("/workflow-runs/review-queue", headers={"x-sts-user": "user_rita", **HOST})
+        response = client.get("/workflow-runs/review-queue", headers={"x-caylios-user": "user_rita", **HOST})
 
     assert response.status_code == 401
 

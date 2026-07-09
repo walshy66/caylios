@@ -5,7 +5,7 @@ Each adapter pushes approved, reviewed field values to one destination using the
 workspace's stored OAuth access token. Failures raise DestinationError with a
 subscriber-readable message; the push framework records them per destination and
 retains data until resolved. Token refresh is wired through provider refreshers
-backed by the STS developer app credentials (one app per provider, per PRD).
+backed by the Caylios developer app credentials (one app per provider, per PRD).
 """
 
 import json

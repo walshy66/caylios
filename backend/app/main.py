@@ -12,7 +12,7 @@ from app.documents import workflow_router
 from app.intake import router as submissions_router
 from app.workspaces import router as workspaces_router
 
-app = FastAPI(title="SimpleTS API")
+app = FastAPI(title="Caylios API")
 
 app.add_middleware(
     CORSMiddleware,

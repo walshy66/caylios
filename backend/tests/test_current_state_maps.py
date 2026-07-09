@@ -5,11 +5,11 @@ from fastapi.testclient import TestClient
 from app import db
 from app.main import app
 
-HOST_A = {"host": "clienta.caylios.com", "x-sts-user": "alice-admin"}
-HOST_A_REVIEWER = {"host": "clienta.caylios.com", "x-sts-user": "alice-reviewer"}
-HOST_A_OPERATOR = {"host": "clienta.caylios.com", "x-sts-user": "alice-operator"}
-HOST_A_SUBMITTER = {"host": "clienta.caylios.com", "x-sts-user": "client-submit-only"}
-HOST_B = {"host": "clientb.caylios.com", "x-sts-user": "bob-admin"}
+HOST_A = {"host": "clienta.caylios.com", "x-caylios-user": "alice-admin"}
+HOST_A_REVIEWER = {"host": "clienta.caylios.com", "x-caylios-user": "alice-reviewer"}
+HOST_A_OPERATOR = {"host": "clienta.caylios.com", "x-caylios-user": "alice-operator"}
+HOST_A_SUBMITTER = {"host": "clienta.caylios.com", "x-caylios-user": "client-submit-only"}
+HOST_B = {"host": "clientb.caylios.com", "x-caylios-user": "bob-admin"}
 
 
 def use_temp_db(monkeypatch, tmp_path):

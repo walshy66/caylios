@@ -9,7 +9,7 @@ from app.models import WorkspaceRole
 from app.schemas import Workspace
 from app.tenancy import resolve_workspace
 
-DEV_USER_HEADER = "x-sts-user"
+DEV_USER_HEADER = "x-caylios-user"
 
 
 def auth_mode() -> str:
@@ -30,7 +30,7 @@ class CurrentUser:
 def get_current_user(request: Request) -> CurrentUser:
     """Resolve the authenticated user.
 
-    Dev mode trusts the X-STS-User header so local demos and tests can act as
+    Dev mode trusts the X-Caylios-User header so local demos and tests can act as
     named users. Production mode is wired to Clerk session verification
     (COA-274); requests without a verifiable identity always get 401.
     """

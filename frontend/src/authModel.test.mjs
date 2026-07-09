@@ -21,8 +21,8 @@ assert.equal(sanitizeDevUserId(''), DEFAULT_DEV_USER);
 assert.equal(sanitizeDevUserId(null), DEFAULT_DEV_USER);
 
 // Header shapes match what the backend expects in each mode.
-assert.deepEqual(devAuthHeaders('rita-reviewer'), { 'X-STS-User': 'rita-reviewer' });
-assert.deepEqual(devAuthHeaders(''), { 'X-STS-User': DEFAULT_DEV_USER });
+assert.deepEqual(devAuthHeaders('rita-reviewer'), { 'X-Caylios-User': 'rita-reviewer' });
+assert.deepEqual(devAuthHeaders(''), { 'X-Caylios-User': DEFAULT_DEV_USER });
 assert.deepEqual(bearerAuthHeaders('jwt-token'), { Authorization: 'Bearer jwt-token' });
 assert.deepEqual(bearerAuthHeaders(''), {});
 assert.deepEqual(bearerAuthHeaders(null), {});

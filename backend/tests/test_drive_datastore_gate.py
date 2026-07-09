@@ -35,7 +35,7 @@ def test_client_context_blocks_invoice_upload_until_drive_datastore_setup_exists
     seed_workspaces()
 
     with TestClient(app) as client:
-        context = client.get("/workspaces/current/client-context", headers={"x-sts-user": "alice-admin", **HOST_A})
+        context = client.get("/workspaces/current/client-context", headers={"x-caylios-user": "alice-admin", **HOST_A})
         upload = client.post(
             "/submissions",
             data={"submitter": "Client", "intent": "client_intake", "fields": '{"business_name":"Demo"}'},
@@ -59,10 +59,10 @@ def test_drive_datastore_setup_stores_pointer_metadata_only_and_is_workspace_sco
         configured = client.put(
             "/workspaces/current/client-context/drive-datastore",
             json={"drive_root_id": "root-a", "invoice_folder_id": "folder-a", "folder_path": "Clients/A/Invoices"},
-            headers={"x-sts-user": "alice-admin", **HOST_A},
+            headers={"x-caylios-user": "alice-admin", **HOST_A},
         )
-        context_a = client.get("/workspaces/current/client-context", headers={"x-sts-user": "alice-admin", **HOST_A})
-        context_b = client.get("/workspaces/current/client-context", headers={"x-sts-user": "platform-admin", **HOST_B})
+        context_a = client.get("/workspaces/current/client-context", headers={"x-caylios-user": "alice-admin", **HOST_A})
+        context_b = client.get("/workspaces/current/client-context", headers={"x-caylios-user": "platform-admin", **HOST_B})
 
     assert configured.status_code == 200
     assert configured.json()["drive_datastore"] == {
@@ -114,7 +114,7 @@ def test_invoice_upload_sends_file_to_configured_drive_folder_and_stores_only_po
                 files={"file": ("ACME Invoice 123.pdf", b"synthetic invoice", "application/pdf")},
                 headers=HOST_A,
             )
-            review_queue = client.get("/workflow-runs/review-queue", headers={"x-sts-user": "alice-admin", **HOST_A})
+            review_queue = client.get("/workflow-runs/review-queue", headers={"x-caylios-user": "alice-admin", **HOST_A})
     finally:
         app.dependency_overrides.clear()
 

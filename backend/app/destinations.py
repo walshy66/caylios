@@ -1,6 +1,6 @@
 """Destination push framework (COA-276/278, adapters COA-277/279/281/285).
 
-On approval STS pushes the reviewed fields to every connected destination in
+On approval Caylios pushes the reviewed fields to every connected destination in
 the workspace. Push results are recorded per destination; data purge only
 happens after every destination succeeded (constitution II + III). Failures are
 visible, retryable, and never delete data.
@@ -35,7 +35,7 @@ class DestinationAdapter(Protocol):
 
 
 class MockDestinationAdapter:
-    """Demo destination: always succeeds without leaving STS."""
+    """Demo destination: always succeeds without leaving Caylios."""
 
     provider = "mock"
 

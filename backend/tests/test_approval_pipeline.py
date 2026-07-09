@@ -12,7 +12,7 @@ from app.intake import get_invoice_drive_uploader
 from app.main import app
 
 HOST = {"host": "clienta.caylios.com"}
-ADMIN = {"x-sts-user": "platform-admin", **HOST}
+ADMIN = {"x-caylios-user": "platform-admin", **HOST}
 
 
 def use_temp_db(monkeypatch, tmp_path):

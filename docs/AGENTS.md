@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Durable SimpleTS product, architecture, planning, and decision documentation.
+Durable Caylios product, architecture, planning, and decision documentation.
 
 ## Ownership
 
@@ -10,7 +10,7 @@ Owns documentation under `docs/` and cross-links to `README.md`, `constitution.m
 
 ## Local Contracts
 
-- Keep docs aligned with the SimpleTS constitution and current golden path.
+- Keep docs aligned with the Caylios constitution and current golden path.
 - Do not document the obsolete local coding-agent dashboard direction as current product intent.
 - Record stable decisions, constraints, and operating rules; avoid diary-style notes.
 

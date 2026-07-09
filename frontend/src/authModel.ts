@@ -13,7 +13,7 @@ export function sanitizeDevUserId(raw: string | null | undefined): string {
 }
 
 export function devAuthHeaders(userId: string): Record<string, string> {
-  return { 'X-STS-User': sanitizeDevUserId(userId) };
+  return { 'X-Caylios-User': sanitizeDevUserId(userId) };
 }
 
 export function bearerAuthHeaders(token: string | null | undefined): Record<string, string> {

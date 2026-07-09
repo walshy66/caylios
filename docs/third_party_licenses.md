@@ -13,11 +13,11 @@ Use standard document processing terminology in product UI. Do not describe OCR 
 | OCR engine | Tesseract OCR | Apache 2.0 expected | Use for images and scanned PDFs as standard document processing. |
 | Python OCR wrapper | `pytesseract` | Verify current package license | Wrapper only; still requires Tesseract runtime. |
 | Image handling/preprocessing | `Pillow` | Permissive/open-source expected | Use for image loading/conversion/preprocessing. |
-| Field extraction | SimpleTS-owned regex/template/rules code | SimpleTS-owned | Start with invoice header/summary fields only; no line items in MVP. |
+| Field extraction | Caylios-owned regex/template/rules code | Caylios-owned | Start with invoice header/summary fields only; no line items in MVP. |
 
 ## Dependencies to avoid for MVP unless licensing is resolved
 
-- Avoid `PyMuPDF`/`fitz` for the MVP unless SimpleTS obtains a suitable commercial license or explicitly accepts AGPL obligations.
+- Avoid `PyMuPDF`/`fitz` for the MVP unless Caylios obtains a suitable commercial license or explicitly accepts AGPL obligations.
 - Avoid managed OCR/document extraction services as the default MVP path because they introduce paid service dependencies and external document processing. They may be considered later behind explicit workspace settings and usage controls.
 
 ## Product language
@@ -29,8 +29,8 @@ Use standard document processing terminology in product UI. Do not describe OCR 
 ## MVP functional boundary
 
 - Google Drive setup is required before document-upload workflows are enabled.
-- Uploaded invoice files are placed in the client-owned Google Drive folder structure; SimpleTS stores pointers/metadata rather than durable file blobs.
-- SimpleTS may use temporary processing cache only while actively extracting/reviewing.
+- Uploaded invoice files are placed in the client-owned Google Drive folder structure; Caylios stores pointers/metadata rather than durable file blobs.
+- Caylios may use temporary processing cache only while actively extracting/reviewing.
 - Review screen shows invoice header/summary fields, source labels, lightweight previous-value comparison where enhanced extraction changed a value, and supports reviewer edits.
 - MVP invoice fields are optional at extraction time and exclude line items.
 

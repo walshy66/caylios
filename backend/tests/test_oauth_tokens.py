@@ -69,9 +69,9 @@ def test_api_never_exposes_token_material(monkeypatch, tmp_path):
         put = client.put(
             "/connections/hubspot",
             json={"access_token": "secret-access-token", "refresh_token": "secret-refresh"},
-            headers={"x-sts-user": "alice-admin", **HOST_A},
+            headers={"x-caylios-user": "alice-admin", **HOST_A},
         )
-        listed = client.get("/connections", headers={"x-sts-user": "alice-admin", **HOST_A})
+        listed = client.get("/connections", headers={"x-caylios-user": "alice-admin", **HOST_A})
 
     assert put.status_code == 200
     assert listed.status_code == 200
@@ -140,9 +140,9 @@ def test_disconnected_connector_raises_until_reconnected(monkeypatch, tmp_path):
         client.put(
             "/connections/pandadoc",
             json={"access_token": "token-1"},
-            headers={"x-sts-user": "alice-admin", **HOST_A},
+            headers={"x-caylios-user": "alice-admin", **HOST_A},
         )
-        disconnected = client.delete("/connections/pandadoc", headers={"x-sts-user": "alice-admin", **HOST_A})
+        disconnected = client.delete("/connections/pandadoc", headers={"x-caylios-user": "alice-admin", **HOST_A})
 
     assert disconnected.status_code == 200
     assert disconnected.json()["status"] == "disconnected"
@@ -160,7 +160,7 @@ def test_connections_are_workspace_scoped(monkeypatch, tmp_path):
         upsert_connection(conn, "ws-a", "hubspot", access_token="ws-a-token")
 
     with TestClient(app) as client:
-        ws_b = client.get("/connections", headers={"x-sts-user": "platform-admin", "host": "clientb.caylios.com"})
+        ws_b = client.get("/connections", headers={"x-caylios-user": "platform-admin", "host": "clientb.caylios.com"})
 
     assert ws_b.json() == []
 
@@ -174,13 +174,13 @@ def test_reviewer_cannot_manage_connectors(monkeypatch, tmp_path):
     seed_workspaces()
 
     with TestClient(app) as client:
-        viewed = client.get("/connections", headers={"x-sts-user": "rita-reviewer", **HOST_A})
+        viewed = client.get("/connections", headers={"x-caylios-user": "rita-reviewer", **HOST_A})
         managed = client.put(
             "/connections/hubspot",
             json={"access_token": "nope"},
-            headers={"x-sts-user": "rita-reviewer", **HOST_A},
+            headers={"x-caylios-user": "rita-reviewer", **HOST_A},
         )
-        removed = client.delete("/connections/hubspot", headers={"x-sts-user": "rita-reviewer", **HOST_A})
+        removed = client.delete("/connections/hubspot", headers={"x-caylios-user": "rita-reviewer", **HOST_A})
 
     assert viewed.status_code == 200
     assert managed.status_code == 403
@@ -195,7 +195,7 @@ def test_unknown_provider_rejected(monkeypatch, tmp_path):
         response = client.put(
             "/connections/sharepoint",
             json={"access_token": "irrelevant"},
-            headers={"x-sts-user": "alice-admin", **HOST_A},
+            headers={"x-caylios-user": "alice-admin", **HOST_A},
         )
 
     assert response.status_code == 422

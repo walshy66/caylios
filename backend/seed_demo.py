@@ -80,7 +80,7 @@ def main() -> None:
             print(f"  + seeded {submitter} ({intent}, {hours}h ago)")
 
         queue = client.get(
-            "/workflow-runs/review-queue", headers={"X-STS-User": "platform-admin"}
+            "/workflow-runs/review-queue", headers={"X-Caylios-User": "platform-admin"}
         )
         count = len(queue.json()) if queue.status_code == 200 else queue.text
         print(f"review queue now holds: {count}")

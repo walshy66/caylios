@@ -129,7 +129,7 @@ def _drawio_geometry(cell: ET.Element) -> dict[str, float]:
 
 
 def _normalise_import_layout(nodes: list[dict[str, object]], lanes: dict[str, dict[str, str]], phases: dict[str, dict[str, str]]) -> list[dict[str, object]]:
-    """Render imported diagrams into a clean SimpleTS layout rather than preserving draw.io coordinates.
+    """Render imported diagrams into a clean Caylios layout rather than preserving draw.io coordinates.
 
     draw.io stores many node coordinates relative to nested containers. Preserving
     those values creates overlapping cards after import. Instead, keep draw.io

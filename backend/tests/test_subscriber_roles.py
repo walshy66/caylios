@@ -17,7 +17,7 @@ def use_temp_db(monkeypatch, tmp_path):
 
 
 def as_user(user_id: str) -> dict[str, str]:
-    return {"x-sts-user": user_id, **HOST}
+    return {"x-caylios-user": user_id, **HOST}
 
 
 def seed_workspace_with_staff(tmp_path) -> None:

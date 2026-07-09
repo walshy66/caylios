@@ -1,4 +1,4 @@
-# Deploying SimpleTS to Fly.io (COA-272)
+# Deploying Caylios to Fly.io (COA-272)
 
 Two apps, both in `syd`:
 

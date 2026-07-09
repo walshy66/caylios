@@ -1,12 +1,12 @@
-# SimpleTS
+# Caylios
 
-SimpleTS is a white-label client portal and workflow orchestration platform with a native, approval-gated workflow engine.
+Caylios is a white-label client portal and workflow orchestration platform with a native, approval-gated workflow engine.
 
-It helps professional services businesses stop double-handling data across multiple applications. End-clients submit information once through a branded portal; subscriber staff review and approve it; SimpleTS then distributes the approved data into the business systems the subscriber already uses.
+It helps professional services businesses stop double-handling data across multiple applications. End-clients submit information once through a branded portal; subscriber staff review and approve it; Caylios then distributes the approved data into the business systems the subscriber already uses.
 
 ## Product direction
 
-SimpleTS is being built as an operational automation platform, not as a local coding-agent dashboard.
+Caylios is being built as an operational automation platform, not as a local coding-agent dashboard.
 
 The core product promise is:
 
@@ -14,28 +14,28 @@ The core product promise is:
 Submit once → review once → distribute everywhere
 ```
 
-SimpleTS acts as the front door for client data intake and the pipe between intake, review, and third-party systems. It is not intended to become a permanent client document archive or long-term PII database.
+Caylios acts as the front door for client data intake and the pipe between intake, review, and third-party systems. It is not intended to become a permanent client document archive or long-term PII database.
 
 ## Primary users
 
 - **End-clients** — submit forms and documents through a branded portal.
 - **Subscriber staff** — review, correct, approve, and monitor submitted data.
 - **Subscriber admins** — manage users, connected apps, workflow configuration, and branding.
-- **STS platform admins** — manage subscriber workspaces and platform operations.
+- **Caylios platform admins** — manage subscriber workspaces and platform operations.
 
 ## Core modules
 
 1. **Workflows**  
-   Subscribers configure how data moves through their business as native SimpleTS workflow definitions: an intake trigger, the mandatory review/approval gate, and destination steps with field mappings. A visual workflow builder (React Flow, matching the Current State canvas) is the planned configuration surface.
+   Subscribers configure how data moves through their business as native Caylios workflow definitions: an intake trigger, the mandatory review/approval gate, and destination steps with field mappings. A visual workflow builder (React Flow, matching the Current State canvas) is the planned configuration surface.
 
 2. **Document Intake**  
    End-clients can upload digital documents such as invoices, PDFs, images, ATO notices, or supporting files. This is a core platform capability, but it is secondary to the first web-form intake slice.
 
 3. **Data Extraction**  
-   SimpleTS extracts, validates, normalises, and prepares structured data from intake sources. Initial work focuses on structured web-form submissions. Document extraction calls the Claude API directly from the backend extraction module.
+   Caylios extracts, validates, normalises, and prepares structured data from intake sources. Initial work focuses on structured web-form submissions. Document extraction calls the Claude API directly from the backend extraction module.
 
 4. **Data Distribution**  
-   SimpleTS pushes approved data into connected third-party applications such as HubSpot, Google Drive, PandaDoc, Xero, Microsoft SharePoint/OneDrive, MYOB, and future client-specific systems.
+   Caylios pushes approved data into connected third-party applications such as HubSpot, Google Drive, PandaDoc, Xero, Microsoft SharePoint/OneDrive, MYOB, and future client-specific systems.
 
 ## First golden path
 
@@ -81,7 +81,7 @@ Planned platform foundations:
 
 ## Workflow engine
 
-SimpleTS owns workflow definition, visualization, and execution — there is no embedded third-party workflow engine. The approval gate, retention rules, and workspace isolation are enforced by the backend and are never delegated.
+Caylios owns workflow definition, visualization, and execution — there is no embedded third-party workflow engine. The approval gate, retention rules, and workspace isolation are enforced by the backend and are never delegated.
 
 - **Connector adapters** (`backend/app/connectors.py`) — direct API integrations per provider, using workspace-scoped encrypted OAuth tokens.
 - **Push framework** (`backend/app/destinations.py`) — pushes approved data to connected destinations with per-destination status, idempotent retry, and retain-until-resolved failure handling.
@@ -132,7 +132,7 @@ Out of scope for v1:
 
 ## Current build stance
 
-This repository should be treated as a clean build toward the new SimpleTS platform direction.
+This repository should be treated as a clean build toward the new Caylios platform direction.
 
 The previous local AI coding-agent session dashboard has been removed from the codebase entirely and must not be reintroduced.
 

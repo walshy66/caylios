@@ -2,7 +2,7 @@
 
 Active when STS_AUTH_MODE=clerk. Verifies the Authorization bearer token as a
 Clerk session JWT (RS256) against the instance JWKS, then maps it to the STS
-CurrentUser identity. Workspace membership/roles remain STS-owned (workspace_users).
+CurrentUser identity. Workspace membership/roles remain Caylios-owned (workspace_users).
 
 Required environment:
 - CLERK_ISSUER            e.g. https://your-instance.clerk.accounts.dev
