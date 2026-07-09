@@ -225,4 +225,4 @@ When the user requests a durable behavior change, record it here or in the relev
 - `front-end-themes/AGENTS.md` — Branding/theme reference assets.
 - `logs/AGENTS.md` — Local transient diagnostic logs.
 
-Root-owned paths without child AGENTS.md: `README.md`, `constitution.md`, `CLAUDE.md`, root config/files, and any new top-level folder until a child AGENTS.md is added.
+Root-owned paths without child AGENTS.md: `README.md`, `constitution.md`, `CLAUDE.md`, `launch-caylios.cmd`, `launch-caylios.ps1`, root config/files, and any new top-level folder until a child AGENTS.md is added.

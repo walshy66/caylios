@@ -144,6 +144,18 @@ The previous local AI coding-agent session dashboard has been removed from the c
 - Node.js 18+
 - npm or yarn
 
+### Easy local launch on Windows
+
+From the repo root, run:
+
+```bat
+launch-caylios.cmd
+```
+
+This starts the backend on `http://localhost:8000`, starts the frontend on `http://localhost:5173`, and opens the frontend once both services are reachable.
+
+The launcher uses `backend\venv\Scripts\python.exe` if present; otherwise it falls back to `python`. Install backend/frontend dependencies and configure local environment files before launching.
+
 ### Backend Setup
 
 1. Navigate to the backend directory:
