@@ -86,8 +86,9 @@ Colour: approved brand colours; accent colours only where they improve communica
 | Outcomes | Capacity · Time · Visibility · Growth · Quality · Efficiency |
 | Status | Success · Warning · Error · Information · Pending |
 
-Only three icon renders are embedded in the source doc so far (the rest of the library is not yet produced as assets):
-[`icon-understand.png`](assets/icon-understand.png) · [`icon-improve.png`](assets/icon-improve.png) · [`icon-automate.png`](assets/icon-automate.png)
+The source doc embeds three example icon renders: [`icon-understand.png`](assets/icon-understand.png) · [`icon-improve.png`](assets/icon-improve.png) · [`icon-automate.png`](assets/icon-automate.png).
+
+The approved production-usable PNG Icon Library lives in the canonical source folder [`assets/icon and shape library/`](assets/icon%20and%20shape%20library/), with 31 assets covering the approved concepts above.
 
 ## Component library
 

@@ -15,11 +15,12 @@ Tracks brand-asset coverage per app surface and what is still needed from the br
 
 ## Remaining requests (nice-to-have, nothing blocked)
 
-- **SVG masters** of the lockup and icons — PNGs are high-res (3200–3750px) and fine for the app; SVG only matters for future print/embroidery and payload size.
+- **SVG masters** of the lockup, logo icons, simplified icons, and Icon Library — PNGs are high-res (3200–3750px for logos/icons) and fine for the app; SVG only matters for future print/embroidery, payload size, and vector handoff.
 - **Multi-size favicon.ico** (16/32/48) — current single PNG favicon is acceptable.
-- **Icon Library**: only 3 of ~28 approved icon concepts exist as assets (`icon-understand.png`, `icon-improve.png`, `icon-automate.png`). In-app UI icons remain generic inline SVGs (not presented as Caylios Icon Library icons) until the library is produced.
-- **Shape legend drawings** are not extractable from the Visual Language Guide .docx; canvas geometry follows `docs/basic_icons.drawio`.
+- **Icon Library implementation mapping**: the approved PNG Icon Library now exists in canonical source location `icon and shape library/` (31 production-usable assets covering the approved concepts), but app/runtime copies and usage mapping should be documented wherever the application consumes them.
+- **Shape legend drawings** are not available as standalone extracted assets from the Visual Language Guide .docx or `assets/`; canvas geometry follows `docs/basic_icons.drawio`.
 
 ## History
 
+- 2026-07-10: approved PNG Icon Library supplied in `assets/icon and shape library/`; concept coverage gap partially closed, with SVG/vector masters, app usage mapping, and standalone shape assets still outstanding.
 - 2026-07-09: official export folders (`Logos/`, `Logo Icons/`, `Logo Icons Simple/`) supplied by Kylie; all interim docx-render assets replaced and deleted; an earlier non-compliant icon+text composition was removed and the no-composition rule made binding in the constitution and brand kit.
