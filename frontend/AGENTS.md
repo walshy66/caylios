@@ -2,7 +2,7 @@
 
 ## Purpose
 
-React/Vite SimpleTS user interfaces for branded intake, subscriber review/approval, dashboards, auth-aware views, and native workflow pages.
+React/Vite Caylios user interfaces for branded intake, subscriber review/approval, dashboards, auth-aware views, and native workflow pages.
 
 ## Ownership
 
@@ -12,7 +12,7 @@ Owns frontend source in `src/`, Vite/TypeScript config, frontend Docker/Fly file
 
 - Do not infer, repair, or bypass backend authority for auth, workspace scope, approval, deletion, connector, or workflow state.
 - Surface distribution and connector failures visibly.
-- Keep the SimpleTS product name, but use `docs/branding/brand-kit.md` as the canonical Simple Technology Solutions (STS) platform visual brand: STS logo, Midnight Indigo/Digital Teal/Electric Mint palette, Montserrat headings, and Calibri-first body text.
+- Use `docs/caylios/brand-kit.md` as the canonical Caylios platform brand: Caylios logo assets, Midnight Indigo/Digital Teal/Electric Mint palette, Montserrat headings, and Calibri-first body text.
 - Preserve a clear seam for future workspace/client theme overrides; tenant logos may override STS only in workspace-branded contexts.
 - Do not reintroduce obsolete coding-agent dashboard direction.
 - Do not create permanent archive UX for client PII or submitted field values.

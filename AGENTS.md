@@ -10,7 +10,7 @@ Core promise:
 
 Naming rules: Caylios is always one word, never abbreviated. Use **CAYLIOS** as a visual mark or standalone identifier (logos, dashboard headers, slide titles); **Caylios** in prose. See `docs/caylios/brand-kit.md`.
 
-Rebrand status: the docs layer is renamed; the application/code rename (folder, packages, identifiers, domains → `caylios.com`) is pending, so code may still say SimpleTS/simplets. New user-facing work should say Caylios.
+Rebrand status: docs and application code are renamed (see `docs/caylios/rebrand-plan.md`). Still outstanding: the repo folder name (`simplets`), the `STS_*` env var family (coordinated rename — deployed Fly secrets depend on the old names; see plan slice 4b), and final SVG brand assets (`docs/caylios/asset-gaps.md`).
 
 The previous local AI coding-agent/dashboard direction is obsolete and MUST NOT guide new work.
 

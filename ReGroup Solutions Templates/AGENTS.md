@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Template/reference material for ReGroup solution scenarios used to inform SimpleTS demonstrations or client-specific planning.
+Template/reference material for ReGroup solution scenarios used to inform Caylios demonstrations or client-specific planning.
 
 ## Ownership
 
@@ -12,7 +12,7 @@ Owns template folders under `ReGroup Solutions Templates/`.
 
 - Treat content as reference material, not live client records.
 - Do not add real client PII, secrets, OAuth tokens, or production financial data.
-- Changes here must not redefine core SimpleTS product rules; use `constitution.md` for that.
+- Changes here must not redefine core Caylios product rules; use `constitution.md` for that.
 
 ## Work Guidance
 
@@ -20,7 +20,7 @@ Keep templates organized by scenario and clearly distinguish examples from imple
 
 ## Verification
 
-Manual review for sensitive data and consistency with SimpleTS scope.
+Manual review for sensitive data and consistency with Caylios scope.
 
 ## Child DOX Index
 

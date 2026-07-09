@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Demo assets and scripts for showing SimpleTS behavior with synthetic scenarios.
+Demo assets and scripts for showing Caylios behavior with synthetic scenarios.
 
 ## Ownership
 
@@ -11,7 +11,7 @@ Owns demo-only material under `demo/`.
 ## Local Contracts
 
 - Use synthetic data only; no real client PII, documents, credentials, or financial records.
-- Demos must reinforce the current SimpleTS golden path and constitution.
+- Demos must reinforce the current Caylios golden path and constitution.
 
 ## Work Guidance
 

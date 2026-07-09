@@ -12,7 +12,7 @@ Submit once → review once → distribute everywhere
 
 Caylios helps subscribers stop double-handling client data across multiple business applications. End-clients submit information once through a branded portal; subscriber staff review and approve it; Caylios distributes the approved data to configured third-party systems.
 
-Rebrand status: the application/code rename from SimpleTS is in progress; "STS"/"SimpleTS" in code identifiers refers to the same platform. All new user-facing work uses the Caylios name per `docs/caylios/brand-kit.md`.
+Rebrand status: docs and application code are renamed to Caylios (`docs/caylios/rebrand-plan.md`). Remaining: repo folder name and the `STS_*` env var family (coordinated rename; deployed secrets depend on the old names). Where `STS_*` appears in configuration it refers to the Caylios platform.
 
 ### Primary users
 

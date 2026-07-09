@@ -2,7 +2,7 @@
 
 ## Purpose
 
-FastAPI service layer for SimpleTS APIs, workspace authority, auth boundaries, intake/review orchestration, connector state, execution status, and retention/deletion behavior.
+FastAPI service layer for Caylios APIs, workspace authority, auth boundaries, intake/review orchestration, connector state, execution status, and retention/deletion behavior.
 
 ## Ownership
 
