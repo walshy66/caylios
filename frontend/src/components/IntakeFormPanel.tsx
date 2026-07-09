@@ -158,7 +158,7 @@ export default function IntakeFormPanel() {
       {error ? <p className="session-error">{error}</p> : null}
       {clientContext?.invoice_upload.available === false ? (
         <p className="session-error">
-          Invoice uploads are not available yet. Ask your SimpleTS workspace admin to finish Google Drive datastore setup for this client before attaching invoices.
+          Invoice uploads are not available yet. Ask your Caylios workspace admin to finish Google Drive datastore setup for this client before attaching invoices.
         </p>
       ) : null}
 

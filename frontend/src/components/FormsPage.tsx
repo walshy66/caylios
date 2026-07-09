@@ -22,9 +22,9 @@ function TemplatePicker({ onChoose }: { onChoose: (template: PrototypeFormTempla
         <div>
           <p className="eyebrow">Form editor prototype</p>
           <h2 id="form-editor-template-title">Create a connector-aware form</h2>
-          <p>Start from a smart template or a blank draft. Mock mappings show how SimpleTS will route fields to compatible connector destinations.</p>
+          <p>Start from a smart template or a blank draft. Mock mappings show how Caylios will route fields to compatible connector destinations.</p>
         </div>
-        <span className="sts-coming-soon-badge">Mock data</span>
+        <span className="caylios-coming-soon-badge">Mock data</span>
       </div>
       <div className="form-template-grid">
         {PROTOTYPE_FORM_TEMPLATES.map((template) => (

@@ -60,7 +60,7 @@ export default function SettingsPage() {
         setLogoUrl(ws.branding_logo_url ?? '');
       })
       .catch(() => {
-        /* leave defaults; branding section still renders the STS platform fallback */
+        /* leave defaults; branding section still renders the Caylios platform fallback */
       });
     return () => {
       cancelled = true;
@@ -91,7 +91,7 @@ export default function SettingsPage() {
       setLogoUrl(ws.branding_logo_url ?? '');
       setSelectedLogoFile(null);
       setLogoStatus(
-        ws.branding_logo_url ? 'Logo saved.' : 'Logo cleared — showing the STS platform default.',
+        ws.branding_logo_url ? 'Logo saved.' : 'Logo cleared — showing the Caylios platform default.',
       );
     } catch {
       setLogoStatus('Could not save branding. Logo uploads must be PNG, JPEG, WebP, or SVG files under 2 MB.');
@@ -104,7 +104,7 @@ export default function SettingsPage() {
     <div className="settings-page">
       <header className="settings-head">
         <h2>Settings</h2>
-        <p>Manage your SimpleTS workspace appearance.</p>
+        <p>Manage your Caylios workspace appearance.</p>
       </header>
 
       <section className="panel settings-section" aria-labelledby="settings-appearance">
@@ -141,7 +141,7 @@ export default function SettingsPage() {
           <div className="settings-row-label">
             <strong>Workspace logo</strong>
             <p className="settings-hint">
-              Shown on your dashboard. Upload an image or paste an image URL; leave blank to use the Simple Technology Solutions default.
+              Shown on your dashboard. Upload an image or paste an image URL; leave blank to use the Caylios default.
             </p>
           </div>
           <div className="settings-logo-preview" aria-label="Logo preview">

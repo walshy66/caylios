@@ -6,7 +6,7 @@ export type IntakeFieldDefinition = {
   type: 'text' | 'email' | 'tel' | 'date' | 'textarea';
 };
 
-export const INTAKE_DRAFT_STORAGE_KEY = 'simplets.coachcwIntakeDraft.v1';
+export const INTAKE_DRAFT_STORAGE_KEY = 'caylios.coachcwIntakeDraft.v1';
 export const INTAKE_INTENT = 'client_intake';
 
 // CoachCW client engagement intake — hardcoded per COA-275 (no form builder in v1).

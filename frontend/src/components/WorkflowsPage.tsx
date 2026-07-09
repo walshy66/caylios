@@ -52,7 +52,7 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-/** Workflows are designed here and, on approval, will run natively in the STS
+/** Workflows are designed here and, on approval, will run natively in the Caylios
  * backend: intake → review and approval → distribution to connected
  * destinations. V1 drafts stay in this browser (localStorage) until backend
  * workflow definitions land. */
@@ -278,7 +278,7 @@ export default function WorkflowsPage() {
                   title="Click to add, or drag onto the canvas"
                   onClick={() => handleAddStep(kind.value)}
                   onDragStart={(event) => {
-                    event.dataTransfer.setData('application/sts-shape-kind', kind.value);
+                    event.dataTransfer.setData('application/caylios-shape-kind', kind.value);
                     event.dataTransfer.effectAllowed = 'move';
                   }}
                 >
@@ -321,7 +321,7 @@ export default function WorkflowsPage() {
                 }}
                 onDrop={(event) => {
                   event.preventDefault();
-                  const kind = event.dataTransfer.getData('application/sts-shape-kind');
+                  const kind = event.dataTransfer.getData('application/caylios-shape-kind');
                   if (!kind || !flowInstanceRef.current) return;
                   handleAddStep(kind, flowInstanceRef.current.screenToFlowPosition({ x: event.clientX, y: event.clientY }));
                 }}

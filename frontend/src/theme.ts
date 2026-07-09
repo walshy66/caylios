@@ -1,10 +1,10 @@
 export type Theme = 'light' | 'dark';
 
-export const THEME_STORAGE_KEY = 'simplets.theme';
+export const THEME_STORAGE_KEY = 'caylios.theme';
 
 export const STS_PLATFORM_BRAND = {
-  companyName: 'Simple Technology Solutions',
-  productName: 'SimpleTS',
+  companyName: 'Caylios',
+  productName: 'Caylios',
   tagline: 'Make Work Simple',
   colors: {
     midnightIndigo: '#150A32',

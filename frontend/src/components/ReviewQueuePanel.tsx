@@ -133,7 +133,7 @@ export default function ReviewQueuePanel() {
     try {
       await purgeWorkflowRun(selected.id);
       setSelected(null);
-      setApprovalCompletion('Retained draft data was purged from SimpleTS.');
+      setApprovalCompletion('Retained draft data was purged from Caylios.');
       await refreshQueue();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Workflow run failed to purge');

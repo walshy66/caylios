@@ -36,7 +36,7 @@ const success = formatApprovalOutcome({
     { provider: 'mock', status: 'succeeded', destination_record_id: 'mock-destination-run-1', error_message: null },
   ],
 });
-assert.ok(success.includes('purged from SimpleTS'));
+assert.ok(success.includes('purged from Caylios'));
 assert.ok(success.includes('mock: mock-destination-run-1'));
 
 const failure = formatApprovalOutcome({

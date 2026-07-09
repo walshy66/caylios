@@ -788,7 +788,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                           title="Click to add, or drag onto the canvas"
                           onClick={() => handleAddNode(nodeType.value)}
                           onDragStart={(event) => {
-                            event.dataTransfer.setData('application/sts-shape-kind', nodeType.value);
+                            event.dataTransfer.setData('application/caylios-shape-kind', nodeType.value);
                             event.dataTransfer.effectAllowed = 'move';
                           }}
                         >
@@ -872,7 +872,7 @@ export default function CurrentStateMapsPage({ onNavigate }: Props) {
                         }}
                         onDrop={(event) => {
                           event.preventDefault();
-                          const kind = event.dataTransfer.getData('application/sts-shape-kind');
+                          const kind = event.dataTransfer.getData('application/caylios-shape-kind');
                           if (!kind || !flowInstanceRef.current || selectedMap.status !== 'draft') return;
                           const position = flowInstanceRef.current.screenToFlowPosition({ x: event.clientX, y: event.clientY });
                           handleAddNode(kind as CurrentStateNodeType, position);

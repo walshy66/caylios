@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           <div className="auth-signed-out">
             <CayliosLogo className="auth-brand-logo" />
             <h1>Make Work Simple</h1>
-            <p>Sign in to access your SimpleTS workspace.</p>
+            <p>Sign in to access your Caylios workspace.</p>
             <SignInButton mode="modal" />
           </div>
         </SignedOut>

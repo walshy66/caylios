@@ -12,6 +12,6 @@ assert.equal(resolveInitialTheme(null, false), 'light');
 assert.equal(resolveInitialTheme('bogus', true), 'dark');
 assert.equal(resolveInitialTheme('', false), 'light');
 
-assert.equal(THEME_STORAGE_KEY, 'simplets.theme');
+assert.equal(THEME_STORAGE_KEY, 'caylios.theme');
 
 console.log('theme tests passed');

@@ -100,7 +100,7 @@ export function formatApprovalOutcome(outcome: ApprovalOutcome): string {
       .filter((push) => push.destination_record_id)
       .map((push) => `${push.provider}: ${push.destination_record_id}`);
     const suffix = records.length > 0 ? ` (${records.join(', ')})` : '';
-    return `Approved. Data pushed to all destinations and purged from SimpleTS${suffix}.`;
+    return `Approved. Data pushed to all destinations and purged from Caylios${suffix}.`;
   }
   const failed = outcome.destination_pushes.filter((push) => push.status === 'failed');
   const failures = failed.map((push) => `${push.provider}: ${push.error_message ?? 'push failed'}`).join('; ');

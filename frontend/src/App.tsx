@@ -100,11 +100,11 @@ export default function App() {
   }
 
   return (
-    <div className="sts-layout">
-      <aside className="sts-sidebar">
-        <button type="button" className="sts-logo" onClick={() => navigate('dashboard')} aria-label="Caylios dashboard">
+    <div className="caylios-layout">
+      <aside className="caylios-sidebar">
+        <button type="button" className="caylios-logo" onClick={() => navigate('dashboard')} aria-label="Caylios dashboard">
           <img
-            className="sts-sidebar-logo"
+            className="caylios-sidebar-logo"
             src="/brand/caylios-logo-icon-transparent.png"
             alt=""
             width="96"
@@ -112,15 +112,15 @@ export default function App() {
           />
           <span className="caylios-sidebar-wordmark">CAYLIOS</span>
         </button>
-        <nav className="sts-nav" aria-label="Portal">
+        <nav className="caylios-nav" aria-label="Portal">
           {NAV_SECTIONS.map((section, index) => (
             <div key={section.title ?? `section-${index}`}>
-              {section.title ? <div className="sts-nav-section">{section.title}</div> : null}
+              {section.title ? <div className="caylios-nav-section">{section.title}</div> : null}
               {section.items.map((item) => (
                 <button
                   key={item.route}
                   type="button"
-                  className={route === item.route ? 'sts-nav-link sts-nav-active' : 'sts-nav-link'}
+                  className={route === item.route ? 'caylios-nav-link caylios-nav-active' : 'caylios-nav-link'}
                   onClick={() => navigate(item.route)}
                   aria-current={route === item.route ? 'page' : undefined}
                 >
@@ -131,12 +131,12 @@ export default function App() {
             </div>
           ))}
         </nav>
-        <div className="sts-sidebar-footer">
+        <div className="caylios-sidebar-footer">
           <AuthControls />
         </div>
       </aside>
 
-      <main className="sts-main">
+      <main className="caylios-main">
         {route === 'dashboard' ? <DashboardPage onNavigate={navigate} /> : null}
         {route === 'forms' ? <FormsPage /> : null}
         {route === 'workflows' ? <WorkflowsPage /> : null}

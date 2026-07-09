@@ -1,6 +1,6 @@
 export type AuthMode = 'clerk' | 'dev';
 
-export const DEV_USER_STORAGE_KEY = 'simplets.devUserId';
+export const DEV_USER_STORAGE_KEY = 'caylios.devUserId';
 export const DEFAULT_DEV_USER = 'platform-admin';
 
 export function resolveAuthMode(clerkPublishableKey: string | undefined | null): AuthMode {
