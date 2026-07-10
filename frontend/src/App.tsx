@@ -35,13 +35,7 @@ const ICONS: Record<PortalRoute, ReactNode> = {
       <path d="M6.5 10v3a2 2 0 0 0 2 2H14" />
     </svg>
   ),
-  workflows: (
-    <svg fill="none" strokeWidth={2} viewBox="0 0 24 24">
-      <circle cx="5" cy="6" r="2.5" />
-      <circle cx="19" cy="18" r="2.5" />
-      <path d="M7.5 6H15a3 3 0 0 1 3 3v6.5" />
-    </svg>
-  ),
+  workflows: <img src="/brand/caylios-icon-workflow-workflow.png" alt="" aria-hidden="true" />,
   review: (
     <svg fill="none" strokeWidth={2} viewBox="0 0 24 24">
       <path d="M22 11.1V12a10 10 0 1 1-5.93-9.14" />

@@ -1656,12 +1656,22 @@ span.canvas-shape-label {
   cursor: pointer;
 }
 
-.caylios-nav-link svg {
+.caylios-nav-link svg,
+.caylios-nav-link img {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
+}
+
+.caylios-nav-link svg {
   stroke: var(--caylios-navy);
   opacity: 0.65;
-  flex-shrink: 0;
+}
+
+.caylios-nav-link img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .caylios-sidebar .caylios-nav-link:hover {

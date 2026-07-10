@@ -12,6 +12,7 @@ Tracks brand-asset coverage per app surface and what is still needed from the br
 | Auth page (`auth.tsx` via `CayliosLogo` full) | `Logos/Caylios Logo_Transparent.png` (navy card) | Official export |
 | Tenant fallback (`BrandLogo.tsx`, white hero card) | `Logos/Caylios Logo_Midnight Indigo.png` | Official export |
 | `CayliosLogo` mark variant | `Logo Icons/Caylios Icon_Transparent.png` → `public/brand/caylios-icon.png` | Official export |
+| Workflows sidebar nav icon (`App.tsx`) | `icon and shape library/Caylios Icon_Workflow_Workflow.png` → `public/brand/caylios-icon-workflow-workflow.png` | Official Icon Library export |
 
 ## Remaining requests (nice-to-have, nothing blocked)
 
